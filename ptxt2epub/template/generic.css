@@ -1,0 +1,39 @@
+/* book body */
+body.book {
+    display: block;
+    font-size: 1em;
+    margin-bottom: 0;
+    margin-left: 5pt;
+    margin-right: 5pt;
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    page-break-before: always
+    }
+p {
+    line-height: 150%
+}
+div.blockquote {
+    display: block;
+    line-height: 1em;
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1em
+    }
+h2.chapter {
+    display: block;
+    font-size: large
+    }
+/* title page*/
+.titlepage {
+    display: block;
+    text-align: center
+    }
+h1.title {
+    font-size: larger;
+    padding-top: 15%
+    }
+h2.author {
+    font-size: medium;
+    }
