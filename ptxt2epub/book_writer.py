@@ -13,6 +13,8 @@
 #    }[]
 #  }
 
+import cgi
+
 class text_writer:
     def __init__(self, book):
         self.book = book
@@ -21,7 +23,7 @@ class text_writer:
         lines = []
         lines.append( u"#title: %s" % self.book.title )
         lines.append( u"#author: %s" % self.book.author )
-        for ch in self.ch2text(self.book):
+        for ch in self.per_chapter():
             lines.append( u"= %s =" % ch['name'] )
             lines.append( u"%s" % ch['text'] )
         return '\n'.join(lines).encode('utf-8')
@@ -50,11 +52,11 @@ class html_writer:
     def one_file(self):
         lines = []
         lines.append( u"<html>\n<head>" )
-        lines.append( u"  <title>%s</title>" % self.book.title )
+        lines.append( u"  <title>%s</title>" % cgi.escape(self.book.title) )
         lines.append( u'  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>' )
         lines.append( u"</head>\n<body>" )
-        for ch in self.ch2html(self.book):
-            lines.append( u"  <h2>%s</h2>" % ch['name'] )
+        for ch in self.per_chapter():
+            lines.append( u"  <h2>%s</h2>" % cgi.escape(ch['name']) )
             lines.append( u"%s" % ch['html'] )
             lines.append( "" )
         lines.append( u"</body>\n</html>" )
@@ -69,11 +71,11 @@ class html_writer:
             lines = []
             for sec in ch.section:
                 if sec.title:
-                    lines.append( u"  <h3>%s</h3>" % sec.title )
+                    lines.append( u"  <h3>%s</h3>" % cgi.escape(sec.title) )
                 for para in sec.paragraph:
                     ll = '  <p>'
                     for txt in para.text:
-                        ll += txt.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+                        ll += cgi.escape(txt)
                         if txt[0] == '"' and txt[-1] == '"':
                             ll += '<br/>\n'
                     ll += '</p>'
