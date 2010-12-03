@@ -1,8 +1,12 @@
-#! /bin/env python
+# -*- coding: utf-8 -*-
+# ePUB generator with Cheetah template
 
 import sys
 __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
+
+#OPS_DIR = 'OEBPS'
+OPS_DIR = 'OPS'
 
 CONTAINER = '''<?xml version="1.0"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -42,8 +46,7 @@ def epub_gen(book, chhtm, coverimg, tmpldir, targetcss, outfile):
     else:        coverfmt = ''
 
     # OPF
-    f = open(os.path.join(tmpldir, 'content.opf'),'r')
-    opf_tmpl = f.read(); f.close()
+    opf_tmpl = open(os.path.join(tmpldir, 'content.opf'),'r').read()
     import time
     geninfo = {'name':__program__,
                'version':__version__,
@@ -53,18 +56,15 @@ def epub_gen(book, chhtm, coverimg, tmpldir, targetcss, outfile):
     opf = str( Template(opf_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
 
     # NCX
-    f = open(os.path.join(tmpldir, 'toc.ncx'),'r')
-    ncx_tmpl = unicode(f.read(),'utf-8'); f.close()
+    ncx_tmpl = unicode(open(os.path.join(tmpldir, 'toc.ncx'),'r').read(),'utf-8')
     ncx = str( Template(ncx_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
 
     # title page
-    f = open(os.path.join(tmpldir, 'titlepage.xhtml'),'r')
-    titpg_tmpl = f.read(); f.close()
+    titpg_tmpl = open(os.path.join(tmpldir, 'titlepage.xhtml'),'r').read()
     titpg = str( Template(titpg_tmpl, searchList=[ {'book':book} ]) )
 
     # chapter files
-    f = open(os.path.join(tmpldir, 'chapter.xhtml'),'r')
-    ch_tmpl = f.read(); f.close()
+    ch_tmpl = open(os.path.join(tmpldir, 'chapter.xhtml'),'r').read()
     ch_list = []
     num = 0
     for ch in chhtm:
@@ -81,15 +81,14 @@ def epub_gen(book, chhtm, coverimg, tmpldir, targetcss, outfile):
         else:
             epub.addFile(coverimg, '', 'cover.'+coverfmt)
         # coverpage
-        f = open(os.path.join(tmpldir, 'coverpage.xhtml'),'r')
-        cvrpg_tmpl = f.read(); f.close()
+        cvrpg_tmpl = open(os.path.join(tmpldir, 'coverpage.xhtml'),'r').read()
         cvrpg = str( Template(cvrpg_tmpl, searchList=[ {'gen':geninfo} ]) )
         epub.addData(cvrpg, '', 'coverpage.xhtml')
-    epub.addFile(os.path.join(tmpldir,'generic.css'), 'OPS', 'generic.css')
-    epub.addFile(targetcss, 'OPS', 'target.css')
-    epub.addData(titpg, 'OPS', 'titlepage.xhtml')
+    epub.addFile(os.path.join(tmpldir,'generic.css'), OPS_DIR, 'generic.css')
+    epub.addFile(targetcss, OPS_DIR, 'target.css')
+    epub.addData(titpg, OPS_DIR, 'titlepage.xhtml')
     for fname,html in ch_list:
-        epub.addData(html, 'OPS', fname)
+        epub.addData(html, OPS_DIR, fname)
     epub.addData(opf, '', 'content.opf')
     epub.addData(ncx, '', 'toc.ncx')
 
@@ -108,8 +107,7 @@ if __name__ == "__main__":
     book.chapter = [ _chapter(id='1',title='Chapter 1',anchor='id_ch001'),
                      _chapter(id='2',title='Chapter 2',anchor='id_ch002') ]
 
-    f = open(mainhtm, 'r')
-    htm = f.read(); f.close()
+    htm = open(mainhtm, 'r').read()
     print htm
     epub_gen(book, htm, cover, "../ptxt2epub/template", tgtcss, outname)
 # vim:ts=4:sw=4:et

@@ -23,13 +23,11 @@ class txt_cleaner:
         self.filename = fname
         # load file
         try:
-            f = open(fname,'r')
+            txt = open(fname,'r').read()
         except:
             import sys
             print >> sys.stderr, "fail to open"
             return None
-        txt = f.read()
-        f.close()
         # guess text coding
         coding = self.txt_coding(txt)
         if coding == 'utf-8':
@@ -122,7 +120,5 @@ if __name__ == '__main__':
     import sys
     rslt = txt_cleaner().load(sys.argv[1])
     import codecs
-    f = codecs.open(sys.argv[2],'w')
-    f.write( rslt.encode('utf-8') )
-    f.close()
+    codecs.open(sys.argv[2],'w').write( rslt.encode('utf-8') )
 # vim:sw=4:ts=8:et

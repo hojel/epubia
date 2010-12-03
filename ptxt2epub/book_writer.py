@@ -88,13 +88,9 @@ if __name__ == '__main__':
     import sys
     import codecs
     from txt_parser import txt_parser
-    f1 = codecs.open(sys.argv[1],'r','utf-8')
-    text = f1.read()[1:]
-    f1.close()
+    text = codecs.open(sys.argv[1],'r','utf-8').read()[1:]
     #-------------------
     dom = txt_parser().parse(text)
     out = html_writer().one_file(dom)
-    f2 = open(sys.argv[2],'w')
-    f2.write( out.encode('utf-8') )
-    f2.close()
+    open(sys.argv[2],'w').write( out.encode('utf-8') )
 # vim: sw=4 ts=8 expandtab

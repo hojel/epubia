@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Text to ePUB converter
 
-import sys
 __program__ = "ptxt2epub"
 __version__ = "0.1.0"
 
