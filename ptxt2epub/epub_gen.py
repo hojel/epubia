@@ -5,7 +5,6 @@ import sys
 __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
-#OPS_DIR = 'OEBPS'
 OPS_DIR = 'OPS'
 
 CONTAINER = '''<?xml version="1.0"?>
@@ -16,7 +15,10 @@ CONTAINER = '''<?xml version="1.0"?>
 </container>
 '''
 
+from Cheetah.Template import Template
+from StringIO import StringIO
 import zipfile
+import Image
 import os
 
 class EPubFile:
@@ -40,10 +42,26 @@ class EPubFile:
         self.epub.writestr(os.path.join(subdir, relativeName), data)
 
 def epub_gen(book, chhtm, coverimg, tmpldir, targetcss, outfile):
-    from Cheetah.Template import Template
-
-    if coverimg: coverfmt = 'jpeg'
-    else:        coverfmt = ''
+    # cover image
+    if coverimg:
+        if coverimg.startswith('http'):
+            import urllib
+            imgdata = urllib.urlopen(coverimg).read()
+        else:
+            imgdata = open(coverimg,'rb').read()
+        img = Image.open(StringIO(imgdata))
+        sizelimit = (570, 650)
+        if img.size[0] > sizelimit[0]:
+            img = img.resize([sizelimit[0], int(img.size[1]*sizelimit[0]/img.size[0])], Image.ANTIALIAS)
+        if img.size[1] > sizelimit[1]:
+            img = img.resize([int(img.size[0]*sizelimit[1]/img.size[1]), sizelimit[1]], Image.ANTIALIAS)
+        #img = ImageOps.grayscale(img)
+        coverfmt = 'png'
+        buf = StringIO()
+        img.save(buf, format=coverfmt)
+        imgdata = buf.getvalue()
+    else:
+        coverfmt = ''
 
     # OPF
     opf_tmpl = open(os.path.join(tmpldir, 'content.opf'),'r').read()
@@ -74,12 +92,8 @@ def epub_gen(book, chhtm, coverimg, tmpldir, targetcss, outfile):
 
     epub = EPubFile(outfile)
     if coverfmt:
-        if coverimg.startswith('http'):
-            import urllib
-            imgdata = urllib.urlopen(coverimg).read()
-            epub.addData(imgdata, '', 'cover.'+coverfmt)
-        else:
-            epub.addFile(coverimg, '', 'cover.'+coverfmt)
+        # cover image
+        epub.addData(imgdata, '', 'cover.'+coverfmt)
         # coverpage
         cvrpg_tmpl = open(os.path.join(tmpldir, 'coverpage.xhtml'),'r').read()
         cvrpg = str( Template(cvrpg_tmpl, searchList=[ {'gen':geninfo} ]) )
@@ -101,7 +115,6 @@ if __name__ == "__main__":
     mainhtm = "html_test.htm"
     tgtcss  = "test.css"
 
-    from Cheetah.Template import Template
     from txt_parser import _book, _chapter
     book = _book(title='Test Book',author='Anonymous')
     book.chapter = [ _chapter(id='1',title='Chapter 1',anchor='id_ch001'),

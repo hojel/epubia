@@ -12,14 +12,14 @@
   </docTitle>
   <navMap>
 #if $gen['coverfmt']
-    <navPoint class="chapter" playOrder="1">
+    <navPoint class="chapter" id="navPoint-1" playOrder="1">
       <navLabel>
         <text>표지</text>
       </navLabel>
       <content src="coverpage.xhtml"/>
     </navPoint>
 #end if
-    <navPoint class="chapter" playOrder="2">
+    <navPoint class="chapter" id="navPoint-2" playOrder="2">
       <navLabel>
         <text>제목</text>
       </navLabel>
@@ -30,7 +30,7 @@
 #set $num = $num + 1
 #set $order = $num + 2
 #set $fname = "chapter%d.xhtml" % $num
-    <navPoint class="chapter" playOrder="$order">
+    <navPoint class="chapter" id="navPoint-$order" playOrder="$order">
       <navLabel>
         <text>$ch.title</text>
       </navLabel>

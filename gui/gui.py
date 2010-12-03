@@ -11,6 +11,9 @@ import sys
 __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
+import re
+DIRECTIVE_PTN = re.compile('^#(title|author|isbn):(.*)',re.M)
+
 #--------------------------------------------------
 class MyFrame(wx.Frame):
     """ We simply derive a new class of Frame. """
@@ -108,10 +111,19 @@ class MyFrame(wx.Frame):
             self.dirname = dlg.GetDirectory()
             for fname in dlg.GetFilenames():
                 newrow = self.grid.table.GetNumberRows()
+                self.scrap.append({'file':fname,'dir':self.dirname})
                 # add new row
                 self.grid.table.SetValue( newrow, 0, True )
                 self.grid.table.SetValue( newrow, 1, fname )
-                self.scrap.append({'file':fname,'dir':self.dirname})
+                # try to fetch directive inside
+                txt = open(os.path.join(self.dirname,fname),'r').read()
+                for key,val in DIRECTIVE_PTN.findall(txt):
+                    if key == 'title':
+                        self.grid.table.SetValue( newrow, 2, val )
+                    elif key == 'author':
+                        self.grid.table.SetValue( newrow, 3, val )
+                    elif key == 'isbn':
+                        self.grid.table.SetValue( newrow, 4, val )
         dlg.Destroy()
 
     def runRemove(self, evt):

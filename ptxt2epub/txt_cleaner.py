@@ -5,10 +5,11 @@
 import re
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
 PARAEND_PTN = re.compile(r'''([\.\?!'"=])$''',re.M|re.U)
-INDENTSTART_PTN = re.compile(r'''^([[ ]{2,}\t])''',re.M|re.U)
+INDENTSTART_PTN = re.compile(r'''^([ ]{2,}|\t)''',re.M|re.U)
 
 # guessing chapter/section
-CHAP_PTN1 = re.compile(ur'^\s*(제\s*\d+\s*장[ \.].{2,})$',re.M)
+CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}\n')
+CHAP_PTN2 = re.compile(ur'^\s*(제\s*\d+\s*장[ \.].{2,})$',re.M)
 SECT_PTN1 = re.compile(r'^\s*([\dIVXivx]+\.?)\s*$',re.M)
 
 class txt_cleaner:
@@ -100,9 +101,11 @@ class txt_cleaner:
         return txt
 
     def guess_format(self, txt):
+        # chapter by underline
+        txt = CHAP_PTN1.sub(r'\n\n= \1 =', txt)
         # chapter
         if len(re.compile('^\s*=[^=].*=$',re.M).findall(txt)) < 1:
-            txt = CHAP_PTN1.sub(r'= \1 =', txt)
+            txt = CHAP_PTN2.sub(r'= \1 =', txt)
         # section
         if len(re.compile('^\s*==[^=].*==$',re.M).findall(txt)) < 1:
             txt = SECT_PTN1.sub(r'== \1 ==', txt)
