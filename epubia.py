@@ -3,18 +3,18 @@
 #
 #  For more detail info, visit http://code.google.com/p/epubia 
 __program__ = 'epubia'
-__version__ = '0.1.1'
+__version__ = '0.2.0'
 __config__  = 'config.xml'
 
 # load config file
-from config_file import MyConfig
-config = MyConfig().load(__config__)
+import config_file
+config = config_file.load(__config__)
 
 # start GUI
-from gui.gui import gui
-gui( config )
+import gui
+gui.gui( config )
 
 # save config file
-MyConfig().save(config, __config__)
+config_file.save(__config__, config)
 
 # vim:ts=4:sw=4:et

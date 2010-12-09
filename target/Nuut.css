@@ -1,3 +1,4 @@
+/* place font files in /fonts of 1st attached disk */
 @font-face { font-family: eb_normal; src: url(res:///nand2/fonts/Daum_Regular_HJ.ttf); }
 @font-face { font-family: eb_bold;   src: url(res:///nand2/fonts/JA_GtEbold.ttf); }
 @font-face { font-family: eb_bold2;  src: url(res:///nand2/fonts/JA_GtEEbold.ttf); }

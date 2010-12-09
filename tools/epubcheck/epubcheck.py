@@ -72,12 +72,6 @@ class MyFrame(wx.Frame):
         for line in proc.stdout:
             wx.CallAfter(self.OnText, line)
 
-class RedirectText:
-    def __init__(self, aWxTextCtrl):
-        self.out = aWxTextCtrl
-    def write(self, string):
-        self.out.WriteText(string)
-
 #--------------------------------------------------
 if __name__ == "__main__":
     app = wx.App(False)

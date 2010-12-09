@@ -14,6 +14,10 @@ class book_scraper:
     kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/%s/l%s.jpg'
     #kyobo_img = 'http://image.kyobobook.co.kr/images/book/xlarge/%s/x%s.jpg'
 
+    default_value = {'author':'','isbn':'',
+                     'cover_url':'',
+                     'publisher':'','description':'','subject':''}
+
     def __init__(self):
         pass
     def search(self,qstr):
@@ -25,23 +29,23 @@ class book_scraper:
         dom = parseString(xml)
         assert dom.childNodes[0].childNodes[0].nodeName == 'channel'
         for node in dom.childNodes[0].childNodes[0].childNodes:
-            pkt = {'subject':''}
+            pkt = self.default_value
             if node.nodeName == 'item':
                 for e in node.childNodes:
                     if e.nodeName == 'title':
                         pkt['title'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'author':
                         pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
-                    elif e.nodeName == 'image':
-                        pkt['image'] = e.childNodes[0].nodeValue.replace('=m1','=m5')
+                    elif e.nodeName == 'cover_url':
+                        pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m5')
                     elif e.nodeName == 'publisher':
                         pkt['publisher'] = e.childNodes[0].nodeValue
                     elif e.nodeName == 'description':
                         pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'isbn':
                         pkt['isbn'] = e.childNodes[0].nodeValue.split(' ')[-1]
-                if pkt['image'] == '' and len(pkt['isbn']) == 13:
-                    pkt['image'] = self.kyobo_img % (pkt['isbn'][-3:-1], pkt['isbn'])
+                if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
+                    pkt['cover_url'] = self.kyobo_img % (pkt['isbn'][-3:-1], pkt['isbn'])
                 info.append( pkt )
         return info
     def cleanup(self,str):
@@ -51,11 +55,11 @@ if __name__ == "__main__":
     info = book_scraper().search( "은하영웅전설 1" )[0]
     print info['title']
     print info['author']
-    print info['image']
+    print info['cover_url']
 
     info = book_scraper().search( "[이광수]무정" )[0]
     print info['title']
     print info['author']
-    print info['image']
+    print info['cover_url']
 
 # vim:ts=4:sw=4:et
