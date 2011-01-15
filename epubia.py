@@ -3,7 +3,7 @@
 #
 #  For more detail info, visit http://code.google.com/p/epubia 
 __program__ = 'epubia'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __config__  = 'config.xml'
 
 # load config file

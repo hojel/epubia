@@ -6,8 +6,10 @@ import sys
 __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
-OPS_DIR = 'OPS'
-IMG_FMT = 'png'
+OPS_DIR  = 'OPS'
+IMG_FMT  = 'jpeg'
+IMG_SIZE = (480, 640)
+
 import re
 IMG_PTN = re.compile('<img [^>]*src="(.*?)"',re.M)
 
@@ -45,37 +47,43 @@ class EPubFile:
     def addData(self, data, subdir, relativeName):
         self.epub.writestr(os.path.join(subdir, relativeName), data)
 
-def copy_image(url, fp, basedir='.'):
+def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
     try:
         if url.startswith('http://'):
+            print 'download image from %s' % url
             import urllib
             imgdata = urllib.urlopen(url).read()
         else:
             if url.startswith('file://'):
                 url = url[7:]
-            if url[1:2] != ':/':    # (eg. C:/ )
-                url = os.path.join(basedir,url)
+            url = os.path.join(basedir,url)
             imgdata = open(url,'rb').read()
+        img = Image.open(StringIO(imgdata))
+        # Scale
+        if maxsize and (img.size[0] > maxsize[0] or img.size[1] > maxsize[1]):
+            xscale = float(maxsize[0]) / img.size[0]
+            yscale = float(maxsize[1]) / img.size[1]
+            if xscale > yscale:
+                img = img.resize([int(img.size[0]*yscale), maxsize[1]], Image.ANTIALIAS)
+            else:
+                img = img.resize([maxsize[0], int(img.size[1]*xscale)], Image.ANTIALIAS)
+        if IMG_FMT=='png' and img.mode == 'CMYK':
+            img = img.convert('RGB')
+        if bw:  # Dither
+            img = img.convert('L')  # 'L'(gray)/'1'(1b)
+        img.save(fp, format=IMG_FMT)
+        return True
     except:
         return False
-    img = Image.open(StringIO(imgdata))
-    sizelimit = (480, 640)
-    if img.size[0] > sizelimit[0]:
-        newsz = ( sizelimit[0], int(img.size[1]*sizelimit[0]/img.size[0]) )
-        if newsz[1] > sizelimit[1]:
-            img = img.resize([int(img.size[0]*sizelimit[1]/img.size[1]), sizelimit[1]], Image.ANTIALIAS)
-        else:
-            img = img.resize([sizelimit[0], int(img.size[1]*sizelimit[0]/im.size[0])], Image.ANTIALIAS)
-    #img = ImageOps.grayscale(img)
-    img.save(fp, format=IMG_FMT)
-    return True
 
-def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.'):
+def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
+            fontfile='arial.ttf'):
     import time
     geninfo = {'name':__program__,
                'version':__version__,
                'timestamp':time.strftime("%Y-%m-%d"),
-               'hascover':False,
+               'coverimage':'',
+               'imageformat':IMG_FMT,
               }
 
     epub = EPubFile(outfile)
@@ -83,24 +91,25 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.'):
     # cover image
     if 'cover_url' in book and book['cover_url']:
         buf = StringIO()
-        if not copy_image( book['cover_url'], buf, basedir=src_dir ):
-            return
-        imgdata = buf.getvalue()
-        # cover image
-        epub.addData(imgdata, '', 'cover.'+IMG_FMT)
-        # coverpage
-        cvrpg_tmpl = open(os.path.join(template_dir, 'coverpage.xhtml'),'r').read()
-        cvrpg = str( Template(cvrpg_tmpl, searchList=[ {'gen':geninfo} ]) )
-        epub.addData(cvrpg, '', 'coverpage.xhtml')
-        geninfo['hascover'] = True
+        if copy_image( book['cover_url'], buf, basedir=src_dir ):
+            imgdata = buf.getvalue()
+            imgfile = 'cover.'+IMG_FMT
+            geninfo['coverimage'] = imgfile
+            # cover image
+            epub.addData(imgdata, '', imgfile)
+            # coverpage
+            cvrpg_tmpl = open(os.path.join(template_dir, 'coverpage.xhtml'),'r').read()
+            cvrpg = str( Template(cvrpg_tmpl, searchList=[ {'gen':geninfo} ]) )
+            epub.addData(cvrpg, '', 'coverpage.xhtml')
+        else:
+            print >> sys.stderr, "ERROR: can not copy cover image, %s" % book['cover_url']
 
     # title page
     titpg_tmpl = open(os.path.join(template_dir, 'titlepage.xhtml'),'r').read()
     titpg = str( Template(titpg_tmpl, searchList=[ {'book':book} ]) )
     epub.addData(titpg, OPS_DIR, 'titlepage.xhtml')
 
-    # chapter files
-    ch_tmpl = open(os.path.join(template_dir, 'chapter.xhtml'),'r').read()
+    # images from chapters
     img_list = []
     imgcnt = 0
     for ch in book['chapter']:
@@ -109,7 +118,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.'):
         for url in IMG_PTN.findall(html):
             imgcnt += 1
             buf = StringIO()
-            if not copy_image( url, buf, basedir=src_dir ):
+            if not copy_image( url, buf, basedir=src_dir, maxsize=IMG_SIZE):
                 print >> sys.stderr, "ERROR: can not read %s" % url
             imgdata = buf.getvalue()
             fname = "image%d.%s" % (imgcnt, IMG_FMT)
@@ -117,10 +126,19 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.'):
             html = html.replace(url, "image/"+fname)
             img_list.append( "image/"+fname )
         ch['html'] = html
-        # store in ZIP
+    book['image'] = img_list
+
+    # chapter files
+    ch_tmpl = open(os.path.join(template_dir, 'chapter.xhtml'),'r').read()
+    for ch in book['chapter']:
         html = str( Template(ch_tmpl, searchList=[ {'book':book, 'ch':ch} ]) )
         epub.addData(html, OPS_DIR, "chapter%d.xhtml" % ch['num'])
-    book['image'] = img_list
+
+    # CSS
+    epub.addFile(os.path.join(template_dir,'generic.css'), OPS_DIR, 'generic.css')
+    epub.addFile(target_css, OPS_DIR, 'target.css')
+    if os.path.basename(target_css).startswith('Embed') and fontfile:
+        epub.addFile(os.path.join('fonts',fontfile), OPS_DIR, 'embedded.ttf')
 
     # OPF
     opf_tmpl = open(os.path.join(template_dir, 'content.opf'),'r').read()
@@ -131,10 +149,6 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.'):
     ncx_tmpl = unicode(open(os.path.join(template_dir, 'toc.ncx'),'r').read(),'utf-8')
     ncx = str( Template(ncx_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
     epub.addData(ncx, '', 'toc.ncx')
-
-    # CSS
-    epub.addFile(os.path.join(template_dir,'generic.css'), OPS_DIR, 'generic.css')
-    epub.addFile(target_css, OPS_DIR, 'target.css')
 
     epub.close()
     epub = None

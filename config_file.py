@@ -8,15 +8,18 @@ default_config = {
             'DaumAPIKey': 'DAUM_SEARCH_DEMO_APIKEY',
             'NaverAPIKey': '',
             #'GenericCSS': 'generic.css',
-            'TargetCSS': 'None',
+            'TargetCSS': 'Embed',
             'UseDestDir': False,
             'DestDir': os.curdir,
+            'FontFile': 'SeoulHangang.ttf',
             'UseTitleInOutputFile': False,
+            'RemoveUntitledFirstChapter': True,
             'OutputEPub': True,
             'OutputMarkdown': False,
             'OutputPDF': False,
             }
 boolkey = [ 'UseDestDir', 'UseTitleInOutputFile',
+            'RemoveUntitledFirstChapter',
             'OutputEPub', 'OutputMarkdown', 'OutputPDF'
           ]
 

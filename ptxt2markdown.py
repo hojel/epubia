@@ -3,24 +3,24 @@
 #
 # Markdown
 #    chapter (=========) 
-#    section (---------)
 
 import re
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
-PARAEND_PTN = re.compile(r'''([\.\?!'"=\)])$''',re.M|re.U)
+PARAEND_PTN = re.compile(r'''([\.\?!'"=\)])\s*$''',re.M|re.U)
 INDENTSTART_PTN = re.compile(r'''^([ ]{2,}|\t)''',re.M|re.U)
 
 # guessing chapter/section
-CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}\n')
-CHAP_PTN2 = re.compile(ur'^\s*(제\s*\d+\s*장[ \.].{2,})$',re.M)
-SECT_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*-{5,}\n')
+CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}[ \t]*\n')
+CHAP_PTN2 = re.compile(r'\n#[ \t]*')
+CHAP_PTN3 = re.compile(ur'^\s*(제\s*\d+\s*장[ \.].{2,})$',re.M)
+SECT_PTN1 = re.compile(r'\n##[ \t]*')
 SECT_PTN2 = re.compile(r'^\s*([\dIVXivx]+\.?)\s*$',re.M)
 
 class txt_cleaner:
     def __init__(self):
         self.ptn_sl_empty = re.compile(r'([^\n])\n\n([^\n])')
-        self.ptn_sl_quote1 = re.compile(r"(\.\n)([ ]*'[^\n]*'\n)([ ]*[^'\n])")
-        self.ptn_sl_quote2 = re.compile(r'(\.\n)([ ]*"[^\n]*"\n)([ ]*[^"\n])')
+        self.ptn_sl_quote1 = re.compile(r"(\.[ \t]*\n)([ ]*'[^\n]*'\n)([ ]*[^'\n])")
+        self.ptn_sl_quote2 = re.compile(r'(\.[ \t]*\n)([ ]*"[^\n]*"\n)([ ]*[^"\n])')
         self.ptn_quote_gap = re.compile(r'"\n\n([ ]*)"')
         self.cleaned = False
 
@@ -39,12 +39,15 @@ class txt_cleaner:
             print "start from %d" % start
             txt = '\n'.join( txt.split('\n')[start-1:] )
         # remove spaces in line end
-        txt = re.sub(r'[ \t\r]*\n', '\n', txt)
+        # --> space in tail can be used as line break directive
+        #txt = re.compile(r'[ \r]*$',re.M).sub('', txt)
+        # clean empty line
+        txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
         # filter special character
         txt = txt.replace(u'”','"').replace(u'“','"')
         return txt
 
-    def paragraph_analyze(self, txt):
+    def analyze_paragraph(self, txt):
         # extract patterns
         self.num_line = len( txt.split('\n') )
         self.num_emptyline = len( EMPTYLINE_PTN.findall(txt) )
@@ -52,23 +55,22 @@ class txt_cleaner:
         self.num_indentline = len( INDENTSTART_PTN.findall(txt) )
         print "paragraph: %d %d %d %d" % (self.num_line, self.num_emptyline, self.num_paraend, self.num_indentline)
 
-    def format_paragraph(self, txt):
+    def format_paragraph(self, text):
         self.cleaned = False
-        self.num_emptyline = len( EMPTYLINE_PTN.findall(txt) )
-        self.num_paraend = len( PARAEND_PTN.findall(txt) )
-        if self.num_emptyline > self.num_paraend:
+        # merge multiple empty lines
+        txt = re.sub(r'\n{2,}', r'\n\n', text)
+        # decide paragraph style
+        self.analyze_paragraph(txt)
+        if self.num_emptyline > 0.45*self.num_line and self.num_paraend < 0.8*self.num_emptyline:
             # Type-5: line separated with empty line
             print "detect all lines are separated by empty line"
             txt = self.ptn_sl_empty.sub(r'\g<1>\n\g<2>',txt)
             self.cleaned = True
-        # merge multiple empty lines
-        txt = re.sub(r'\n{2,}', r'\n\n', txt)
-        # decide paragraph style
-        self.paragraph_analyze(txt)
+            self.analyze_paragraph(txt)
         if self.num_indentline > self.num_emptyline:
             # Type-2: paragraph by indentation
             print "detect paragraph indentation"
-            txt = INDENTSTART_PTN.sub(r'\n\1',txt)
+            text = INDENTSTART_PTN.sub(r'\n\1',txt)
             self.cleaned = True
         elif self.num_emptyline < 0.4 * self.num_paraend:
             if self.num_paraend > 0.8 * self.num_line:
@@ -77,9 +79,9 @@ class txt_cleaner:
             else:
                 # Type-4: not formatted
                 print "detect not formatted paragraph"
-            txt = PARAEND_PTN.sub(r'\1\n',txt)
+            text = PARAEND_PTN.sub(r'\1\n',txt)
             self.cleaned = True
-        return txt
+        return text
 
     def prettify_quote(self, txt):
         # wrap single quote block with empty lines
@@ -89,13 +91,40 @@ class txt_cleaner:
         txt = self.ptn_quote_gap.sub(r'"\n\1"', txt)
         return txt
 
-def guess_format(txt):
+def mark_chapter(text, toc_hdr):
+    start = False
+    inTOC = False
+    cnt = 0
+    for line in text.split('\n'):
+    	if start:
+            cname = re.compile('\d*\s*$').sub('',line).strip()
+            if cname:
+                inTOC = True
+                #print (u"chapter: %s" % cname).encode('utf-8')
+                text = re.compile('^%s$' % cname,re.M).sub('%s\n%s' % (cname,'='*2*len(cname)),text)
+                cnt += 1
+            elif inTOC:
+                break
+    	elif line.find(toc_hdr) >= 0:
+            start = True
+            inTOC = False
+    print "%d chapters found" % cnt
+    return text
+
+def guess_block(txt):
     # chapter
-    if len(CHAP_PTN1.findall(txt)) < 1:
-        txt = CHAP_PTN2.sub(r'\n\1\n%s\n' % ('='*10), txt)
+    #txt = mark_chapter(txt, u'<차 례>')
+    # chapter
+    numch = 0
+    numch += len(CHAP_PTN1.findall(txt))
+    numch += len(CHAP_PTN2.findall(txt))
+    if numch < 1:
+        txt = CHAP_PTN3.sub(r'\n# \1\n\n', txt)
     # section
-    if len(SECT_PTN1.findall(txt)) < 1:
-        txt = SECT_PTN2.sub(r'\n\1\n%s\n' % ('-'*10), txt)
+    numsec = 0
+    numsec += len(SECT_PTN1.findall(txt))
+    if numsec < 1:
+        txt = SECT_PTN2.sub(r'\n## \1\n\n', txt)
     return txt
 
 def guess_coding(txt, filename=''):
@@ -126,10 +155,10 @@ def load(fname):
 def clean(text, start=1):
     # convert
     text = txt_cleaner().convert( text, start )
-    return guess_format( text )
+    return guess_block( text )
 
 #--------------------------------------
-def get_md_meta(text):
+def extract_meta(text):
     lines = text.split('\n')
     info = {}
     meta_found = False
@@ -138,7 +167,9 @@ def get_md_meta(text):
             break   # empty line ends meta block
         pos = line.find(':')
         if pos >= 0:
-            key = line[:pos].strip().lower()
+            key = line[:pos].lower()
+            if key[0] == ' ' or key[-1] == ' ':
+                break
             val = line[pos+1:].strip() 
             info[key] = val
             meta_found = True
@@ -148,8 +179,8 @@ def get_md_meta(text):
             break
     return info
 
-def insert_md_meta(text, meta):
-    # advance to first paragraph
+def insert_meta(text, meta):
+    # remove existing meta block
     lines = text.split('\n')
     cnt = 0
     meta_found = False
@@ -164,21 +195,14 @@ def insert_md_meta(text, meta):
         else:
             break
         cnt += 1
-    # insert meta
+    # insert new meta block
     nwlns = []
-    nwlns.append(u"Language:  %s" % 'Korean')
-    nwlns.append(u"Title:     %s" % meta['title'])
-    nwlns.append(u"Author:    %s" % meta['author'])
-    if 'publisher' in meta:
-        nwlns.append(u"Publisher: %s" % meta['publisher'])
-    if 'subject' in meta:
-        nwlns.append(u"Subject:   %s" % meta['subject'])
-    if 'isbn' in meta:
-        nwlns.append(u"ISBN:      %s" % meta['isbn'])
-    if 'description' in meta:
-        nwlns.append(u"Summary:   %s" % meta['description'])
-    if 'cover_url' in meta:
-        nwlns.append(u"cover_url: %s" % meta['cover_url'])
+    for key, val in meta.items():
+        if key == 'isbn':
+            key = key.upper()
+        elif key.find('_') < 0:
+            key = key.title()
+        nwlns.append( u"{0:15} {1}".format(key+':', val) )
     nwlns.append('')
     nwlns.extend( lines[cnt:] )
     return '\n'.join(nwlns)

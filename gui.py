@@ -99,7 +99,7 @@ class MyFrame(wx.Frame):
             self.grid.table.SetValue(row, 0, False)
 
     def runImport(self, evt):
-        import ptxt2md
+        import ptxt2markdown
         # multi-file open dialogue
         """ Open a file"""
         dlg = wx.FileDialog(self, "Choose files", self.dirname, "", "*.txt", wx.FD_OPEN|wx.FD_MULTIPLE)
@@ -112,15 +112,14 @@ class MyFrame(wx.Frame):
                 self.grid.table.SetValue( newrow, 0, True )
                 self.grid.table.SetValue( newrow, 1, fname )
                 # try to fetch directive inside
-                text = ptxt2md.load( os.path.join(self.dirname,fname) )
-                info = ptxt2md.get_md_meta(text)
-                for key,val in info.items():
-                    if key == 'title':
-                        self.grid.table.SetValue( newrow, 2, val )
-                    elif key == 'author':
-                        self.grid.table.SetValue( newrow, 3, val )
-                    elif key == 'isbn':
-                        self.grid.table.SetValue( newrow, 4, val )
+                text = ptxt2markdown.load( os.path.join(self.dirname,fname) )
+                info = ptxt2markdown.extract_meta(text)
+                if 'title' in info:
+                    self.grid.table.SetValue( newrow, 2, info['title'] )
+                if 'author' in info:
+                    self.grid.table.SetValue( newrow, 3, info['author'] )
+                if 'isbn' in info:
+                    self.grid.table.SetValue( newrow, 4, info['isbn'] )
                 self.scrap[newrow]['info'] = info
         dlg.Destroy()
 
@@ -180,12 +179,16 @@ class MyFrame(wx.Frame):
                     self.grid.table.SetValue(row, 4, info['isbn'])
                 else:
                     info = self.scraper.default_value
-                self.scrap[row]['info'] = info
+                if self.scrap[row]['info']:
+                    for key,val in info.items():
+                        self.scrap[row]['info'][key] = val
+                else:
+                    self.scrap[row]['info'] = info
                 cnt += 1
         dlg.Update(cnt, u"완료")
 
     def runConvert(self, evt):
-        import ptxt2md
+        import ptxt2markdown
         # get total count to do
         cnt = 0
         for row in range(self.grid.table.GetNumberRows()):
@@ -206,15 +209,22 @@ class MyFrame(wx.Frame):
             if self.grid.table.GetValue(row, 0):        # selected
                 # load
                 txtfile = os.path.join( self.scrap[row]['dir'], self.scrap[row]['file'] )
-                text = ptxt2md.load(txtfile)
-                text = ptxt2md.clean(text)
+                text = ptxt2markdown.load(txtfile)
+                text = ptxt2markdown.clean(text)
                 info = self.scrap[row]['info']
                 info['title']  = self.grid.table.GetValue(row, 2)
+                if not info['title']: del info['title']
                 info['author'] = self.grid.table.GetValue(row, 3)
+                if not info['author']: del info['author']
                 info['isbn']   = self.grid.table.GetValue(row, 4)
-                atxt = ptxt2md.insert_md_meta(text, info)
+                if not info['isbn']: del info['isbn']
+                info['language'] = 'Korean'
+                atxt = ptxt2markdown.insert_meta(text, info)
 
-                (keepGoing, skip) = dlg.Update(cnt, u"%s 변환중" % info['title'])
+                dlgtit = u'<미지정>'
+                if 'title' in info:
+                    dlgtit = info['title']
+                (keepGoing, skip) = dlg.Update(cnt, u"%s 변환중" % dlgtit)
                 if not keepGoing:
                     break
 
@@ -229,18 +239,25 @@ class MyFrame(wx.Frame):
                     out_nex = os.path.join(os.path.dirname(txtfile), filebase)
                 # generate
                 if self.config['OutputEPub']:
-                    import md2epub
+                    from markdown2epub import markdown2epub
                     epubfile = out_nex+'.epub'
-                    md2epub.md2epub(atxt, epubfile, target_css = self.targetcss, template_dir = self.tmpldir,
-                                    src_dir = os.path.dirname(txtfile) )
+                    markdown2epub(atxt, epubfile,
+                                target_css = self.targetcss,
+                                template_dir = self.tmpldir,
+                                src_dir = os.path.dirname(txtfile),
+                                fontfile=self.config['FontFile'],
+                                rmUntit1st = self.config['RemoveUntitledFirstChapter'] )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
                     open(out_nex+'.txt', 'w').write( atxt.encode('utf-8-sig') )
                 if self.config['OutputPDF']:
-                    import md2pdf
+                    from markdown2pdf import markdown2pdf
                     pdffile = out_nex+'.pdf'
-                    md2pdf.md2pdf(atxt, pdffile, cssfile='xhtml2pdf-hangul.css',
-                                    src_dir = os.path.dirname(txtfile) )
+                    markdown2pdf(atxt, pdffile,
+                                cssfile='xhtml2pdf.css',
+                                fontfile=self.config['FontFile'],
+                                src_dir = os.path.dirname(txtfile),
+                                rmUntit1st = self.config['RemoveUntitledFirstChapter'] )
                     print u"%s is generated" % pdffile
                 cnt += 1
         dlg.Update(cnt, u"변환완료: %d개" % cnt)
@@ -431,7 +448,8 @@ class MyOption(wx.Dialog):
         # Target CSS
         box1_title = wx.StaticBox(self, wx.ID_ANY, u"CSS 선택")
         box1  = wx.StaticBoxSizer(box1_title, wx.VERTICAL)
-        grid1 = wx.FlexGridSizer(0, 2, 0, 0)
+        grid11 = wx.FlexGridSizer(0, 2, 0, 0)
+        grid12 = wx.FlexGridSizer(0, 2, 0, 0)
 
         tgtlabel = wx.StaticText(self, wx.ID_ANY, u"출력장치")
         targetList = []
@@ -443,11 +461,26 @@ class MyOption(wx.Dialog):
 
         cb1 = wx.Choice(self, choices=targetList)
         cb1.SetStringSelection(config['TargetCSS'])
-        grid1.Add( tgtlabel, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
-        grid1.Add( cb1, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+        grid11.Add( tgtlabel, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+        grid11.Add( cb1, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
         self.css_cb = cb1;
 
-        box1.Add( grid1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        tgtlabel = wx.StaticText(self, wx.ID_ANY, u"글꼴")
+        targetList = []
+        import glob
+        for font in glob.glob("fonts/*.ttf"):
+            targetList.append( os.path.basename(font) )
+        if not config['FontFile'] in targetList:
+            config['FontFile'] = targetList[0]
+
+        cb1 = wx.Choice(self, choices=targetList)
+        cb1.SetStringSelection(config['FontFile'])
+        grid12.Add( tgtlabel, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+        grid12.Add( cb1, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+        self.font_cb = cb1;
+
+        box1.Add( grid11, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        box1.Add( grid12, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
         mvs.Add( box1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
 
         # Scraper Selection
@@ -523,6 +556,7 @@ class MyOption(wx.Dialog):
     def UpdateConfig(self, config):
         #
         config['TargetCSS'] = self.css_cb.GetStringSelection()
+        config['FontFile'] = self.font_cb.GetStringSelection()
         #
         for radio, text in self.scrap_ctrls:
             srvname = radio.GetLabel()

@@ -1,7 +1,7 @@
 /* place font files in /fonts of 1st attached disk */
-@font-face    { font-family: eb_normal; src: url(res:///media/fonts/HANDotum.ttf); }
-@font-face    { font-family: eb_bold;   src: url(res:///media/fonts/HANDotumB.ttf); }
-body p div    { font-family: eb_normal; }
-h1 h2 h3      { font-family: eb_bold; }
-div.booktitle { font-family: eb_bold; }
-div.author    { font-family: eb_bold; }
+@font-face     { font-family: eb_normal; src: url(res:///media/fonts/HANDotum.ttf); }
+@font-face     { font-family: eb_bold;   src: url(res:///media/fonts/HANDotumB.ttf); }
+body p div     { font-family: eb_normal; }
+h1 h2 h3       { font-family: eb_bold; }
+div.booktitle  { font-family: eb_bold; }
+div.bookauthor { font-family: eb_bold; }
