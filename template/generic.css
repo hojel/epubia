@@ -1,0 +1,58 @@
+/* book body */
+body {
+    display: block;
+    font-size: 1em;
+    margin-bottom: 0;
+    margin-left: 5pt;
+    margin-right: 5pt;
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    page-break-before: always
+    }
+p {
+    line-height: 150%;
+    text-indent: 1.0em;
+    margin-bottom: 0;
+    margin-top: 0.4em;
+}
+h1 {
+    display: block;
+    font-size: large;
+    }
+h2 {
+    display: block;
+    font-size: medium;
+    }
+img {
+    text-align: center
+    }
+div.blockquote {
+    display: block;
+    line-height: 1em;
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1em
+    }
+/* title page*/
+div.titlepage {
+    display: block;
+    text-align: center
+    }
+div.booktitle {
+    font-size: larger;
+    padding-top: 15%
+    }
+div.booksubtitle {
+    font-size: large;
+    padding-top: 5%
+    }
+div.bookauthor {
+    font-size: medium;
+    padding-top: 10%
+    }
+div.booksubauthor {
+    font-size: medium;
+    padding-top: 5%
+    }

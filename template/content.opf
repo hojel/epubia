@@ -1,0 +1,55 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="uuid_id">
+  <metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xmlns:opf="http://www.idpf.org/2007/opf"
+	    xmlns:dcterms="http://purl.org/dc/terms/"
+	    xmlns:calibre="http://calibre.kovidgoyal.net/2009/metadata"
+	    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:creator opf:role="aut">$book['author']</dc:creator>
+    <dc:publisher>$book['publisher']</dc:publisher>
+    <dc:description>$book['summary']</dc:description>
+    <dc:language>$book['lang']</dc:language>
+    <dc:title>$book['title']</dc:title>
+    <meta name="cover" content="cover"/>
+    <dc:date>$gen['timestamp']</dc:date>
+    <dc:contributor opf:role="bkp">$gen['name'] ($gen['version'])</dc:contributor>
+    <dc:identifier opf:scheme="ISBN">$book['isbn']</dc:identifier>
+    <dc:identifier id="uuid_id" opf:scheme="uuid">ebook1</dc:identifier>
+    <dc:subject>$book['subject']</dc:subject>
+</metadata>
+  <manifest>
+    <item href="OPS/titlepage.xhtml" id="titlepage" media-type="application/xhtml+xml"/>
+#for $num in range(len($book['chapter']))
+#set $id    = "chapter%d" % ($num+1)
+#set $fname = "chapter%d.xhtml" % ($num+1)
+    <item href="OPS/$fname" id="$id" media-type="application/xhtml+xml"/>
+#end for
+    <item href="OPS/generic.css" id="css1" media-type="text/css"/>
+    <item href="OPS/target.css" id="css2" media-type="text/css"/>
+#if $gen['coverimage']
+    <item href="$gen['coverimage']" id="cover" media-type="image/$gen['imageformat']"/>
+    <item href="coverpage.xhtml" id="coverpage" media-type="application/xhtml+xml"/>
+#end if
+#set $cnt = 0
+#for $p in $book['image']
+#set $cnt += 1
+    <item href="OPS/$p" id="image$cnt" media-type="image/$gen['imageformat']"/>
+#end for
+    <item href="toc.ncx" media-type="application/x-dtbncx+xml" id="ncx"/>
+  </manifest>
+  <spine toc="ncx">
+#if $gen['coverimage']
+    <itemref idref="coverpage"/>
+#end if
+    <itemref idref="titlepage"/>
+#for $num in range(len($book['chapter']))
+#set $id    = "chapter%d" % ($num+1)
+    <itemref idref="$id"/>
+#end for
+  </spine>
+  <guide>
+#if $gen['coverimage']
+    <reference href="coverpage.xhtml" type="cover" title="Cover"/>
+#end if
+  </guide>
+</package>

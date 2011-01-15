@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="$book['lang']">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>$book['author'] - $book['title']</title>
+    <link href="generic.css" type="text/css" rel="stylesheet"/>
+    <link href="target.css" type="text/css" rel="stylesheet"/>
+  </head>
+  <body>
+    <div id="titlepage" class="titlepage">
+      <div class="booktitle">$book['title']</div>
+#if 'subtitle' in $book and $book['subtitle']
+      <div class="booksubtitle">$book['subtitle']</div>
+#end if
+      <div class="bookauthor">$book['author']</div>
+#if 'translator' in $book and $book['translator']
+      <div class="booksubauthor">$book['translator']</div>
+#end if
+    </div>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+/* Embedded Font: only one and this name is fixed */
+@font-face    { font-family: eb_normal; src: url(embedded.ttf); }
+body p div    { font-family: eb_normal; }
+h1 h2 h3      { font-family: eb_normal; }
