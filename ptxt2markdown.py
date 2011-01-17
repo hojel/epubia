@@ -6,8 +6,8 @@
 
 import re
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
-PARAEND_PTN = re.compile(r'''([\.\?!'"=\)])\s*$''',re.M|re.U)
-INDENTSTART_PTN = re.compile(r'''^([ ]{2,}|\t)''',re.M|re.U)
+PARAEND_PTN = re.compile(r'''([\.\?!'"\)])\s*$''',re.M|re.U)
+INDENTSTART_PTN = re.compile(r'''^([ ]{2,3})''',re.M|re.U)      # preserve Markdown block (4 spaces or tab)
 
 # guessing chapter/section
 CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}[ \t]*\n')
@@ -29,6 +29,8 @@ class txt_cleaner:
         txt = self.preprocess(txt, start)
         # paragraph
         txt = self.format_paragraph(txt)
+        # break within word
+        txt = self.recover_word(txt)
         #if self.cleaned:
         #    txt = self.prettify_quote(txt)
         return txt
@@ -45,6 +47,7 @@ class txt_cleaner:
         txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
         # filter special character
         txt = txt.replace(u'”','"').replace(u'“','"')
+        #txt = txt.replace(u'『',"'").replace(u'』',"'")
         return txt
 
     def analyze_paragraph(self, txt):
@@ -81,6 +84,17 @@ class txt_cleaner:
                 print "detect not formatted paragraph"
             text = PARAEND_PTN.sub(r'\1\n',txt)
             self.cleaned = True
+        return text
+
+    def recover_word(self, text):
+        numline = len(text.split('\n'))
+        numsch = len(re.compile('\S\n\S ',re.U).findall(text))  # single character in line start
+        #print "word break: %d / %d" % (numsch, numline)
+        if numsch > numline*0.08:
+            print "Detect word break over lines"
+            text = re.compile('(\w)\n([다자까아][\.\?!])',re.U).sub(r'\1\2\n',text)
+            text = re.compile('(\w)\n([이가을를은는도]) ',re.U).sub(r'\1\2\n',text)
+            #text = re.compile(' (\w)\n(\w{2,})',re.U).sub(r'\n\1\2',text)
         return text
 
     def prettify_quote(self, txt):

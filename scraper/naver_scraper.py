@@ -8,11 +8,11 @@ import re
 MARKUP_PTN = re.compile(r'</?[a-z]+>')
 
 class book_scraper:
-    key = '46f179fdde77da5c56e24c842ee802c8'    # my key
-    srch_url = 'http://openapi.naver.com/search?key=%s&query=%s&display=1&target=book'
-    isbn_url = 'http://openapi.naver.com/search?key=%s&query=%s&display=1&target=book_adv&d_isbn=%s'
-    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/%s/l%s.jpg'
-    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/xlarge/%s/x%s.jpg'
+    key = ''    # my key
+    srch_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book'
+    isbn_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book_adv&d_isbn={1:s}'
+    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/l{1:s}.jpg'
+    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/xlarge/{0:s}/x{1:s}.jpg'
 
     default_value = {'author':'','isbn':'',
                      'cover_url':'',
@@ -21,9 +21,9 @@ class book_scraper:
     def __init__(self):
         pass
     def search(self,qstr):
-        return self.parse( urllib.urlopen(self.srch_url % (self.key, urllib.quote_plus(qstr))).read() )
+        return self.parse( urllib.urlopen(self.srch_url.format(self.key, urllib.quote_plus(qstr))).read() )
     def fetch(self,isbn):
-        return self.parse( urllib.urlopen(self.isbn_url % (self.key, isbn)).read() )[0]
+        return self.parse( urllib.urlopen(self.isbn_url.format(self.key, isbn)).read() )[0]
     def parse(self,xml):
         info = []
         dom = parseString(xml)
@@ -43,9 +43,9 @@ class book_scraper:
                     elif e.nodeName == 'description':
                         pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'isbn':
-                        pkt['isbn'] = e.childNodes[0].nodeValue.split(' ')[-1]
+                        pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue.split(' ')[-1])
                 if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
-                    pkt['cover_url'] = self.kyobo_img % (pkt['isbn'][-3:-1], pkt['isbn'])
+                    pkt['cover_url'] = self.kyobo_img.format(pkt['isbn'][-3:-1], pkt['isbn'])
                 info.append( pkt )
         return info
     def cleanup(self,str):
@@ -61,5 +61,4 @@ if __name__ == "__main__":
     print info['title']
     print info['author']
     print info['cover_url']
-
 # vim:ts=4:sw=4:et

@@ -7,7 +7,6 @@ __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
 OPS_DIR  = 'OPS'
-IMG_FMT  = 'jpeg'
 IMG_SIZE = (480, 640)
 
 import re
@@ -48,6 +47,11 @@ class EPubFile:
         self.epub.writestr(os.path.join(subdir, relativeName), data)
 
 def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
+    pos = url.rfind('.',-5)
+    if pos < 0:
+        fmt = ''
+    else:
+        fmt = url[pos+1:].lower()
     try:
         if url.startswith('http://'):
             print 'download image from %s' % url
@@ -58,23 +62,31 @@ def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
                 url = url[7:]
             url = os.path.join(basedir,url)
             imgdata = open(url,'rb').read()
-        img = Image.open(StringIO(imgdata))
-        # Scale
-        if maxsize and (img.size[0] > maxsize[0] or img.size[1] > maxsize[1]):
-            xscale = float(maxsize[0]) / img.size[0]
-            yscale = float(maxsize[1]) / img.size[1]
-            if xscale > yscale:
-                img = img.resize([int(img.size[0]*yscale), maxsize[1]], Image.ANTIALIAS)
-            else:
-                img = img.resize([maxsize[0], int(img.size[1]*xscale)], Image.ANTIALIAS)
-        if IMG_FMT=='png' and img.mode == 'CMYK':
-            img = img.convert('RGB')
-        if bw:  # Dither
-            img = img.convert('L')  # 'L'(gray)/'1'(1b)
-        img.save(fp, format=IMG_FMT)
-        return True
     except:
-        return False
+        return None
+    img = Image.open(StringIO(imgdata))
+    # Scale
+    if maxsize and (img.size[0] > maxsize[0] or img.size[1] > maxsize[1]):
+        xscale = float(maxsize[0]) / img.size[0]
+        yscale = float(maxsize[1]) / img.size[1]
+        if xscale > yscale:
+            img = img.resize([int(img.size[0]*yscale), maxsize[1]], Image.ANTIALIAS)
+        else:
+            img = img.resize([maxsize[0], int(img.size[1]*xscale)], Image.ANTIALIAS)
+    if fmt=='png' or fmt=='jpeg':
+        pass
+    elif fmt=='gif':
+        fmt = 'png'
+    elif fmt=='jpg':
+        fmt = 'jpeg'
+    else:
+        print "WARNING: unknown format, %s" % fmt
+        img = img.convert('RGB')
+        fmt = 'png'
+    if bw:  # Dither
+        img = img.convert('L')  # 'L'(gray)/'1'(1b)
+    img.save(fp, format=fmt)
+    return fmt
 
 def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
             fontfile='arial.ttf'):
@@ -82,8 +94,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
     geninfo = {'name':__program__,
                'version':__version__,
                'timestamp':time.strftime("%Y-%m-%d"),
-               'coverimage':'',
-               'imageformat':IMG_FMT,
+               'coverimage':None,
               }
 
     epub = EPubFile(outfile)
@@ -91,10 +102,11 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
     # cover image
     if 'cover_url' in book and book['cover_url']:
         buf = StringIO()
-        if copy_image( book['cover_url'], buf, basedir=src_dir ):
+        fmt = copy_image( book['cover_url'], buf, basedir=src_dir )
+        if fmt:
             imgdata = buf.getvalue()
-            imgfile = 'cover.'+IMG_FMT
-            geninfo['coverimage'] = imgfile
+            imgfile = 'cover.'+fmt
+            geninfo['coverimage'] = (imgfile, fmt)
             # cover image
             epub.addData(imgdata, '', imgfile)
             # coverpage
@@ -118,13 +130,15 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
         for url in IMG_PTN.findall(html):
             imgcnt += 1
             buf = StringIO()
-            if not copy_image( url, buf, basedir=src_dir, maxsize=IMG_SIZE):
+            fmt = copy_image( url, buf, basedir=src_dir, maxsize=IMG_SIZE)
+            if fmt:
+                imgdata = buf.getvalue()
+                fname = "image%d.%s" % (imgcnt, fmt)
+                epub.addData(imgdata, OPS_DIR+"/image", fname)
+                html = html.replace(url, "image/"+fname)
+                img_list.append( ("image/"+fname, fmt) )
+            else:
                 print >> sys.stderr, "ERROR: can not read %s" % url
-            imgdata = buf.getvalue()
-            fname = "image%d.%s" % (imgcnt, IMG_FMT)
-            epub.addData(imgdata, OPS_DIR+"/image", fname)
-            html = html.replace(url, "image/"+fname)
-            img_list.append( "image/"+fname )
         ch['html'] = html
     book['image'] = img_list
 

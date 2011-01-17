@@ -27,13 +27,13 @@
     <item href="OPS/generic.css" id="css1" media-type="text/css"/>
     <item href="OPS/target.css" id="css2" media-type="text/css"/>
 #if $gen['coverimage']
-    <item href="$gen['coverimage']" id="cover" media-type="image/$gen['imageformat']"/>
+    <item href="$gen['coverimage'][0]" id="cover" media-type="image/$gen['coverimage'][1]"/>
     <item href="coverpage.xhtml" id="coverpage" media-type="application/xhtml+xml"/>
 #end if
 #set $cnt = 0
 #for $p in $book['image']
 #set $cnt += 1
-    <item href="OPS/$p" id="image$cnt" media-type="image/$gen['imageformat']"/>
+    <item href="OPS/$p[0]" id="image$cnt" media-type="image/$p[1]"/>
 #end for
     <item href="toc.ncx" media-type="application/x-dtbncx+xml" id="ncx"/>
   </manifest>
@@ -42,8 +42,8 @@
     <itemref idref="coverpage"/>
 #end if
     <itemref idref="titlepage"/>
-#for $num in range(len($book['chapter']))
-#set $id    = "chapter%d" % ($num+1)
+#for $ch in $book['chapter']
+#set $id = "chapter%d" % $ch['num']
     <itemref idref="$id"/>
 #end for
   </spine>

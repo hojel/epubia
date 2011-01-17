@@ -27,14 +27,25 @@ h2 {
 img {
     text-align: center
     }
-div.blockquote {
+blockquote {
     display: block;
-    line-height: 1em;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 1em
-    }
+    line-height: 1.2em;
+    margin-bottom: 0;
+    margin-left: 2em;
+    margin-right: 0.5em;
+    margin-top: 0;
+  }
+blockquote p {
+    text-indent: 0;
+  }
+code {
+    display: block;
+    line-height: 1.2em;
+    margin-bottom: 0;
+    margin-left: 2em;
+    margin-right: 0.5em;
+    margin-top: 0;
+  }
 /* title page*/
 div.titlepage {
     display: block;

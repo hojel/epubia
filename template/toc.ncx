@@ -11,21 +11,22 @@
     <text>$book['title']</text>
   </docTitle>
   <navMap>
+#set $order = 1
 #if $gen['coverimage']
-    <navPoint class="chapter" id="navPoint-1" playOrder="1">
+    <navPoint class="chapter" id="navPoint-1" playOrder="$order">
       <navLabel>
         <text>표지</text>
       </navLabel>
       <content src="coverpage.xhtml"/>
     </navPoint>
+#set $order = $order + 1
 #end if
-    <navPoint class="chapter" id="navPoint-2" playOrder="2">
+    <navPoint class="chapter" id="navPoint-2" playOrder="$order">
       <navLabel>
         <text>제목</text>
       </navLabel>
       <content src="OPS/titlepage.xhtml"/>
     </navPoint>
-#set $order = 2
 #for $ch in $book['chapter']
 #if $ch['name']
 #set $order = $order + 1

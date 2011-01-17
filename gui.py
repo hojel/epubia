@@ -139,9 +139,10 @@ class MyFrame(wx.Frame):
                 cnt += 1
         if cnt == 0:
             return
+        maxcnt = cnt
         dlg = wx.ProgressDialog(u"Book Scrapping",
                                 u"책정보 가져오기",
-                                maximum = cnt,
+                                maximum = maxcnt,
                                 parent = self,
                                 style = wx.PD_CAN_ABORT
                                       | wx.PD_AUTO_HIDE
@@ -149,6 +150,7 @@ class MyFrame(wx.Frame):
                                 )
         # scrapping
         cnt = 0
+        keepGoing = True
         for row in range(self.grid.table.GetNumberRows()):
             if self.grid.table.GetValue(row, 0):        # selected
                 fname = self.grid.table.GetValue(row, 1)
@@ -179,13 +181,16 @@ class MyFrame(wx.Frame):
                     self.grid.table.SetValue(row, 4, info['isbn'])
                 else:
                     info = self.scraper.default_value
-                if self.scrap[row]['info']:
-                    for key,val in info.items():
-                        self.scrap[row]['info'][key] = val
-                else:
-                    self.scrap[row]['info'] = info
+                # copy result
+                if not self.scrap[row]['info']:
+                    self.scrap[row]['info'] = dict()
+                for key,val in info.items():
+                    self.scrap[row]['info'][key] = val
                 cnt += 1
-        dlg.Update(cnt, u"완료")
+        if keepGoing:
+            dlg.Update(cnt, u"완료")
+        else:
+            dlg.Update(maxcnt, u"취소")
 
     def runConvert(self, evt):
         import ptxt2markdown
@@ -196,21 +201,24 @@ class MyFrame(wx.Frame):
                 cnt += 1
         if cnt == 0:
             return
+        maxcnt = cnt
         dlg = wx.ProgressDialog(u"Book Conversion",
                                 u"ePub 변환",
-                                maximum = cnt,
+                                maximum = maxcnt,
                                 parent = self,
                                 style = wx.PD_CAN_ABORT
                                       | wx.PD_APP_MODAL
                                 )
         # scrapping
         cnt = 0
+        keepGoing = True
         for row in range(self.grid.table.GetNumberRows()):
             if self.grid.table.GetValue(row, 0):        # selected
                 # load
                 txtfile = os.path.join( self.scrap[row]['dir'], self.scrap[row]['file'] )
                 text = ptxt2markdown.load(txtfile)
-                text = ptxt2markdown.clean(text)
+                if self.config['ReformatText']:
+                    text = ptxt2markdown.clean(text)
                 info = self.scrap[row]['info']
                 info['title']  = self.grid.table.GetValue(row, 2)
                 if not info['title']: del info['title']
@@ -225,11 +233,10 @@ class MyFrame(wx.Frame):
                 if 'title' in info:
                     dlgtit = info['title']
                 (keepGoing, skip) = dlg.Update(cnt, u"%s 변환중" % dlgtit)
-                if not keepGoing:
-                    break
+                if not keepGoing: break
 
                 # output
-                if self.config['UseTitleInOutputFile']:
+                if self.config['UseTitleInOutputName']:
                     filebase = info['title']
                 else:
                     filebase = os.path.splitext( os.path.basename(txtfile) )[0]
@@ -260,7 +267,10 @@ class MyFrame(wx.Frame):
                                 rmUntit1st = self.config['RemoveUntitledFirstChapter'] )
                     print u"%s is generated" % pdffile
                 cnt += 1
-        dlg.Update(cnt, u"변환완료: %d개" % cnt)
+        if keepGoing:
+            dlg.Update(cnt, u"변환완료: %d개" % cnt)
+        else:
+            dlg.Update(maxcnt, u"변환취소: %d개" % cnt)
 
     def OnOption(self, evt):
         dlg = MyOption(self.panel, u"설정", self.config)
@@ -446,12 +456,12 @@ class MyOption(wx.Dialog):
         mvs = wx.BoxSizer( wx.VERTICAL )
 
         # Target CSS
-        box1_title = wx.StaticBox(self, wx.ID_ANY, u"CSS 선택")
+        box1_title = wx.StaticBox(self, wx.ID_ANY, u"출력장치")
         box1  = wx.StaticBoxSizer(box1_title, wx.VERTICAL)
         grid11 = wx.FlexGridSizer(0, 2, 0, 0)
         grid12 = wx.FlexGridSizer(0, 2, 0, 0)
 
-        tgtlabel = wx.StaticText(self, wx.ID_ANY, u"출력장치")
+        tgtlabel = wx.StaticText(self, wx.ID_ANY, u"장치설정")
         targetList = []
         import glob
         for css in glob.glob("target/*.css"):

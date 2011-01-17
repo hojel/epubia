@@ -5,6 +5,7 @@ import StringIO
 import os
 import re
 from Cheetah.Template import Template
+from tempfile import NamedTemporaryFile
 
 debug = False
 
@@ -21,17 +22,15 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     title = None
     author = None
 
-    import tempfile
-    tempcover = None
+    cif = None
     if 'cover_url' in md.Meta:
-        import urllib
         cover_url = md.Meta['cover_url'][0]
         if cover_url.startswith('http://'):
-            extname = cover_url[ cover_url.rfind('.'): ]
-            fd,tempcover = tempfile.mkstemp(suffix=extname)
-            os.write(fd, urllib.urlopen(cover_url).read())
-            os.close(fd)
-            cover_file = tempcover
+            import urllib
+            cif = NamedTemporaryFile(delete=False)
+            cif.write( urllib.urlopen(cover_url).read() )
+            cif.close()
+            cover_file = cif.name
         else:
             cover_file = cover_url
             if cover_url.startswith('file://'):
@@ -67,10 +66,17 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
                 #xhtml=True,
                 encoding='utf-8')
     fp.close()
-    if tempcover and os.path.exists(tempcover):
-        os.remove(tempcover)
+    if cif and os.path.exists(cif.name):
+        os.remove(cif.name)
     #if debug and not pdf.err:
     #	pisa.startViewer(pdffile)
+
+# suppress ho.pisa loggin message
+import logging
+class PisaNullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+logging.getLogger("ho.pisa").addHandler(PisaNullHandler())
 
 if __name__ == "__main__":
     debug = True

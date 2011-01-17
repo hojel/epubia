@@ -9,10 +9,10 @@ MARKUP_PTN = re.compile(r'</?[a-z]+>')
 
 class book_scraper:
     key = 'DAUM_SEARCH_DEMO_APIKEY'    # my key
-    srch_url = 'http://apis.daum.net/search/book?q=%s&result=1&apikey=%s'
-    isbn_url = 'http://apis.daum.net/search/book?q=%s&result=1&searchType=isbn&apikey=%s'
-    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/%s/l%s.jpg'
-    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/xlarge/%s/x%s.jpg'
+    srch_url = 'http://apis.daum.net/search/book?q={0:s}&result=1&apikey={1:s}'
+    isbn_url = 'http://apis.daum.net/search/book?q={0:s}&result=1&searchType=isbn&apikey={1:s}'
+    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/l{1:s}.jpg'
+    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/x{1:s}.jpg'
 
     default_value = {'author':'','isbn':'',
                      'cover_url':'',
@@ -21,9 +21,9 @@ class book_scraper:
     def __init__(self):
         pass
     def search(self,qstr):
-        return self.parse( urllib.urlopen(self.srch_url % (urllib.quote_plus(qstr), self.key)).read() )
+        return self.parse( urllib.urlopen(self.srch_url.format(urllib.quote_plus(qstr), self.key)).read() )
     def fetch(self,isbn):
-        return self.parse( urllib.urlopen(self.isbn_url % (isbn, self.key)).read() )[0]
+        return self.parse( urllib.urlopen(self.isbn_url.format(isbn, self.key)).read() )[0]
     def parse(self,xml):
         info = []
         dom = parseString(xml)
@@ -57,7 +57,7 @@ class book_scraper:
                         if e.childNodes:
                             pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue)[3:]
                 if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
-                    pkt['cover_url'] = self.kyobo_img % (pkt['isbn'][-3:-1], pkt['isbn'])
+                    pkt['cover_url'] = self.kyobo_img.format(pkt['isbn'][-3:-1], pkt['isbn'])
                 info.append( pkt )
         return info
     def cleanup(self,str):

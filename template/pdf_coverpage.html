@@ -1,11 +1,11 @@
-#if $cover_url
-  <div style="text-align: center; vertical-align: middle; page-break-after: always;">
-    <img class="bookcover" alt="Cover" src="$cover_url" />
-  </div>
-#end if 
 #if $title
-  <div style="text-align: center; vertical-align: middle;">
+  <div style="margin-top: 40px; text-align: center; vertical-align: middle;">
     <div class="booktitle">$title</div>
-    <div class="bookauthor">$author</div>
+    <div class="bookauthor" style="margin-top: 20px;">$author</div>
+#if $cover_url
+    <div style="margin-top: 30px;">
+    <img class="bookcover" alt="Cover" src="$cover_url" />
+    </div>
+#end if 
   </div>
 #end if 

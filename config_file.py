@@ -12,14 +12,15 @@ default_config = {
             'UseDestDir': False,
             'DestDir': os.curdir,
             'FontFile': 'SeoulHangang.ttf',
-            'UseTitleInOutputFile': False,
+            'UseTitleInOutputName': False,
+            'ReformatText' : True,
             'RemoveUntitledFirstChapter': True,
             'OutputEPub': True,
             'OutputMarkdown': False,
             'OutputPDF': False,
             }
-boolkey = [ 'UseDestDir', 'UseTitleInOutputFile',
-            'RemoveUntitledFirstChapter',
+boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
+            'ReformatText', 'RemoveUntitledFirstChapter',
             'OutputEPub', 'OutputMarkdown', 'OutputPDF'
           ]
 
