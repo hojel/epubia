@@ -1,5 +1,5 @@
 <?xml version="1.0"  encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="uuid_id">
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
   <metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	    xmlns:opf="http://www.idpf.org/2007/opf"
 	    xmlns:dcterms="http://purl.org/dc/terms/"
@@ -13,8 +13,8 @@
     <meta name="cover" content="cover"/>
     <dc:date>$gen['timestamp']</dc:date>
     <dc:contributor opf:role="bkp">$gen['name'] ($gen['version'])</dc:contributor>
-    <dc:identifier opf:scheme="ISBN">$book['isbn']</dc:identifier>
-    <dc:identifier id="uuid_id" opf:scheme="uuid">ebook1</dc:identifier>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/"
+        id="bookid" opf:scheme="ISBN">urn:isbn:$book['isbn']</dc:identifier>
     <dc:subject>$book['subject']</dc:subject>
 </metadata>
   <manifest>
