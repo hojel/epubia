@@ -11,8 +11,8 @@ class book_scraper:
     key = 'DAUM_SEARCH_DEMO_APIKEY'    # my key
     srch_url = 'http://apis.daum.net/search/book?q={0:s}&result=1&apikey={1:s}'
     isbn_url = 'http://apis.daum.net/search/book?q={0:s}&result=1&searchType=isbn&apikey={1:s}'
-    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/l{1:s}.jpg'
-    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/x{1:s}.jpg'
+    img_url  = 'http://image.kyobobook.co.kr/images/book/large/{1:s}/l{0:s}.jpg'
+    #img_url  = 'http://image.kyobobook.co.kr/images/book/xlarge/{1:s}/x{0:s}.jpg'
 
     default_value = {'author':'','isbn':'',
                      'cover_url':'',
@@ -23,14 +23,17 @@ class book_scraper:
     def search(self,qstr):
         return self.parse( urllib.urlopen(self.srch_url.format(urllib.quote_plus(qstr), self.key)).read() )
     def fetch(self,isbn):
-        return self.parse( urllib.urlopen(self.isbn_url.format(isbn, self.key)).read() )[0]
+        isbn = self.parse( urllib.urlopen(self.isbn_url.format(isbn, self.key)).read() )
+        if isbn:
+            return isbn[0]
+        return None
     def parse(self,xml):
         info = []
         dom = parseString(xml)
         assert dom.childNodes[0].nodeName == 'channel'
         for node in dom.childNodes[0].childNodes:
-            pkt = self.default_value
             if node.nodeName == 'item':
+                pkt = self.default_value
                 for e in node.childNodes:
                     if e.nodeName == 'title':
                         if e.childNodes:
@@ -57,7 +60,7 @@ class book_scraper:
                         if e.childNodes:
                             pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue)[3:]
                 if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
-                    pkt['cover_url'] = self.kyobo_img.format(pkt['isbn'][-3:-1], pkt['isbn'])
+                    pkt['cover_url'] = self.img_url.format(pkt['isbn'], pkt['isbn'][-3:-1])
                 info.append( pkt )
         return info
     def cleanup(self,str):

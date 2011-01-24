@@ -14,7 +14,9 @@
     <dc:date>$gen['timestamp']</dc:date>
     <dc:contributor opf:role="bkp">$gen['name'] ($gen['version'])</dc:contributor>
     <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/"
-        id="bookid" opf:scheme="ISBN">urn:isbn:$book['isbn']</dc:identifier>
+        opf:scheme="ISBN">urn:isbn:$book['isbn']</dc:identifier>
+    <dc:identifier xmlns:opf="http://www.idpf.org/2007/opf"
+        id="bookid" opf:scheme="UUID">urn:uuid:$gen['uuid']</dc:identifier>
     <dc:subject>$book['subject']</dc:subject>
 </metadata>
   <manifest>

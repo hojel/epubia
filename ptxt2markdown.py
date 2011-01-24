@@ -4,10 +4,11 @@
 # Markdown
 #    chapter (=========) 
 
+import codecs
 import re
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
 PARAEND_PTN = re.compile(r'''([\.\?!'"\)])\s*$''',re.M|re.U)
-INDENTSTART_PTN = re.compile(r'''^([ ]{2,3})''',re.M|re.U)      # preserve Markdown block (4 spaces or tab)
+INDENTSTART_PTN = re.compile(r'''^([ ]{1,3})''',re.M|re.U)      # preserve Markdown block (4 spaces or tab)
 
 # guessing chapter/section
 CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}[ \t]*\n')
@@ -19,9 +20,9 @@ SECT_PTN2 = re.compile(r'^\s*([\dIVXivx]+\.?)\s*$',re.M)
 class txt_cleaner:
     def __init__(self):
         self.ptn_sl_empty = re.compile(r'([^\n])\n\n([^\n])')
-        self.ptn_sl_quote1 = re.compile(r"(\.[ \t]*\n)([ ]*'[^\n]*'\n)([ ]*[^'\n])")
-        self.ptn_sl_quote2 = re.compile(r'(\.[ \t]*\n)([ ]*"[^\n]*"\n)([ ]*[^"\n])')
-        self.ptn_quote_gap = re.compile(r'"\n\n([ ]*)"')
+        self.ptn_quote_start = re.compile(r'''([\.!\?"'])\s*\n+(["'])''')
+        self.ptn_quote_end = re.compile(r'''(["'])\s*\n+(\S)''')
+        self.ptn_quote_gap = re.compile(r'''(["'])\s*\n+(["'])''')
         self.cleaned = False
 
     def convert(self, txt, start=1):
@@ -31,8 +32,8 @@ class txt_cleaner:
         txt = self.format_paragraph(txt)
         # break within word
         txt = self.recover_word(txt)
-        #if self.cleaned:
-        #    txt = self.prettify_quote(txt)
+        if self.cleaned:
+            txt = self.prettify_quote(txt)
         return txt
 
     def preprocess(self, txt, start=1):
@@ -47,6 +48,7 @@ class txt_cleaner:
         txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
         # filter special character
         txt = txt.replace(u'”','"').replace(u'“','"')
+        txt = txt.replace(u"‘","'").replace(u"’","'")
         #txt = txt.replace(u'『',"'").replace(u'』',"'")
         return txt
 
@@ -71,9 +73,9 @@ class txt_cleaner:
             self.cleaned = True
             self.analyze_paragraph(txt)
         if self.num_indentline > self.num_emptyline:
-            # Type-2: paragraph by indentation
-            print "detect paragraph indentation"
-            text = INDENTSTART_PTN.sub(r'\n\1',txt)
+            # Type-2: paragraph by indent
+            print "detect paragraph by indent"
+            text = INDENTSTART_PTN.sub(r'\n',txt)
             self.cleaned = True
         elif self.num_emptyline < 0.4 * self.num_paraend:
             if self.num_paraend > 0.8 * self.num_line:
@@ -81,7 +83,7 @@ class txt_cleaner:
                 print "detect single line paragraph"
             else:
                 # Type-4: not formatted
-                print "detect not formatted paragraph"
+                print "detect non formatted paragraph"
             text = PARAEND_PTN.sub(r'\1\n',txt)
             self.cleaned = True
         return text
@@ -99,10 +101,10 @@ class txt_cleaner:
 
     def prettify_quote(self, txt):
         # wrap single quote block with empty lines
-        #txt = self.ptn_sl_quote1.sub(r'\g<1>\n\g<2>\n\g<3>', txt)
-        #txt = self.ptn_sl_quote2.sub(r'\g<1>\n\g<2>\n\g<3>', txt)
+        txt = self.ptn_quote_start.sub(r'\1\n\n\2', txt)
+        txt = self.ptn_quote_end.sub(r'\1\n\n\2', txt)
         # merge sequent single line quotes in one block
-        txt = self.ptn_quote_gap.sub(r'"\n\1"', txt)
+        #txt = self.ptn_quote_gap.sub(r'\1\n\n\2', txt)
         return txt
 
 def mark_chapter(text, toc_hdr):
@@ -142,12 +144,23 @@ def guess_block(txt):
     return txt
 
 def guess_coding(txt, filename=''):
-    import codecs
-    if txt[:3] == codecs.BOM_UTF8:
+    if filename.find('.utf8') > 0:
         return 'utf-8'
+    if filename.find('.cp949') > 0:
+        return 'cp949'
+    if filename.find('.euckr') > 0:
+        return 'euc-kr'
     if filename.find('.johab') > 0:
         return 'johab'
-    return 'cp949'
+    if txt[:3] == codecs.BOM_UTF8:
+        return 'utf-8'
+    import chardet
+    detsz = min(4000, len(txt))
+    coding = chardet.detect(txt[:detsz])['encoding']
+    print "coding %s is detected" % coding
+    if coding is None or coding == 'EUC-KR':
+        coding = 'cp949'
+    return coding
 
 #--------------------------------------
 def load(fname):
@@ -158,12 +171,11 @@ def load(fname):
         import sys
         print >> sys.stderr, "fail to open"
         return None
-    # guess text coding
-    coding = guess_coding(text, fname)
-    if coding == 'utf-8':
-        text = unicode(text, coding)[1:]  # remove BOM
-    else:
-        text = unicode(text, coding, errors='replace')
+    # convert to unicode
+    coding = guess_coding(text, filename=fname)
+    text = unicode(text, coding, errors='replace')
+    if ord(text[0]) == 0xfeff:  # utf-8 BOM
+        return text[1:]
     return text
 
 def clean(text, start=1):
@@ -214,9 +226,9 @@ def insert_meta(text, meta):
     for key, val in meta.items():
         if key == 'isbn':
             key = key.upper()
-        elif key.find('_') < 0:
+        elif key.find('_') < 0:     # not cover_url
             key = key.title()
-        nwlns.append( u"{0:15} {1}".format(key+':', val) )
+        nwlns.append( u"{0:15} {1}".format(key+':', val.replace('\n','')) )
     nwlns.append('')
     nwlns.extend( lines[cnt:] )
     return '\n'.join(nwlns)

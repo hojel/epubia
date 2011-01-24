@@ -3,6 +3,11 @@
     src: url($font);
 }
 
+@page {
+    size: a5 portrait;	/* 4x6배판(B5), 신국판(A5), 4x6판(B6) */
+    margin: 0.5cm;
+}
+
 html {
     /* font-family: Helvetica; */
     font-family: Hangul;    /* not working here */

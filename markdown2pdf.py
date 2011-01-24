@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 debug = False
 
 def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
-        fontfile='arial.ttf', rmUntit1st=True):
+        fontfile='arial.ttf', skipTo1st=False):
     global debug
     md = markdown.Markdown(extensions=['meta','footnotes'])
     html = md.convert(text)
@@ -49,7 +49,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
             pass
         else:
             html = html.replace(url, os.path.normpath(src_dir+'/'+url))
-    if rmUntit1st:
+    if skipTo1st:
         html = html[ html.find('<h1'): ]
     html = html.replace('<h1 />','<h1></h1>')
     htmline.append(html)

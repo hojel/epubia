@@ -153,9 +153,9 @@ class MyFrame(wx.Frame):
         keepGoing = True
         for row in range(self.grid.table.GetNumberRows()):
             if self.grid.table.GetValue(row, 0):        # selected
-                fname = self.grid.table.GetValue(row, 1)
-                title = self.grid.table.GetValue(row, 2)
-                isbn  = self.grid.table.GetValue(row, 4)
+                fname  = self.grid.table.GetValue(row, 1)
+                title  = self.grid.table.GetValue(row, 2)
+                isbn   = self.grid.table.GetValue(row, 4)
                 # scrapping main
                 info = None
                 if isbn:
@@ -175,17 +175,18 @@ class MyFrame(wx.Frame):
                     rslt = self.scraper.search( srch.encode('utf-8') )
                     if rslt:
                         info = rslt[0]
-                if info:
-                    self.grid.table.SetValue(row, 2, info['title'])
-                    self.grid.table.SetValue(row, 3, info['author'])
-                    self.grid.table.SetValue(row, 4, info['isbn'])
-                else:
+                if info is None:
                     info = self.scraper.default_value
                 # copy result
-                if not self.scrap[row]['info']:
+                if self.scrap[row]['info'] is None:
                     self.scrap[row]['info'] = dict()
                 for key,val in info.items():
-                    self.scrap[row]['info'][key] = val
+                    if not self.config['PreserveUserMeta'] or not key in self.scrap[row]['info']:
+                        self.scrap[row]['info'][key] = val
+                # display
+                self.grid.table.SetValue(row, 2, self.scrap[row]['info']['title'])
+                self.grid.table.SetValue(row, 3, self.scrap[row]['info']['author'])
+                self.grid.table.SetValue(row, 4, self.scrap[row]['info']['isbn'])
                 cnt += 1
         if keepGoing:
             dlg.Update(cnt, u"완료")
@@ -253,7 +254,7 @@ class MyFrame(wx.Frame):
                                 template_dir = self.tmpldir,
                                 src_dir = os.path.dirname(txtfile),
                                 fontfile=self.config['FontFile'],
-                                rmUntit1st = self.config['RemoveUntitledFirstChapter'] )
+                                skipTo1st = self.config['SkipToFirstChapter'] )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
                     open(out_nex+'.txt', 'w').write( atxt.encode('utf-8-sig') )
@@ -264,7 +265,7 @@ class MyFrame(wx.Frame):
                                 cssfile='xhtml2pdf.css',
                                 fontfile=self.config['FontFile'],
                                 src_dir = os.path.dirname(txtfile),
-                                rmUntit1st = self.config['RemoveUntitledFirstChapter'] )
+                                skipTo1st = self.config['SkipToFirstChapter'] )
                     print u"%s is generated" % pdffile
                 cnt += 1
         if keepGoing:

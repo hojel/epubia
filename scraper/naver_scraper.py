@@ -11,8 +11,8 @@ class book_scraper:
     key = ''    # my key
     srch_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book'
     isbn_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book_adv&d_isbn={1:s}'
-    kyobo_img = 'http://image.kyobobook.co.kr/images/book/large/{0:s}/l{1:s}.jpg'
-    #kyobo_img = 'http://image.kyobobook.co.kr/images/book/xlarge/{0:s}/x{1:s}.jpg'
+    img_url  = 'http://book.daum-img.net/image/KOR{0:s}'
+    #img_url  = 'http://image.kyobobook.co.kr/images/book/large/{1:s}/l{0:s}.jpg'
 
     default_value = {'author':'','isbn':'',
                      'cover_url':'',
@@ -29,23 +29,24 @@ class book_scraper:
         dom = parseString(xml)
         assert dom.childNodes[0].childNodes[0].nodeName == 'channel'
         for node in dom.childNodes[0].childNodes[0].childNodes:
-            pkt = self.default_value
             if node.nodeName == 'item':
+                pkt = self.default_value
                 for e in node.childNodes:
                     if e.nodeName == 'title':
                         pkt['title'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'author':
                         pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
-                    elif e.nodeName == 'cover_url':
+                    elif e.nodeName == 'image':
                         pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m5')
                     elif e.nodeName == 'publisher':
                         pkt['publisher'] = e.childNodes[0].nodeValue
                     elif e.nodeName == 'description':
-                        pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
+                        if e.childNodes:
+                            pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'isbn':
                         pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue.split(' ')[-1])
                 if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
-                    pkt['cover_url'] = self.kyobo_img.format(pkt['isbn'][-3:-1], pkt['isbn'])
+                    pkt['cover_url'] = self.img_url.format(pkt['isbn'], pkt['isbn'][-3:-1])
                 info.append( pkt )
         return info
     def cleanup(self,str):

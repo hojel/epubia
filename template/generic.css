@@ -11,10 +11,10 @@ body {
     page-break-before: always
     }
 p {
-    line-height: 150%;
+    line-height: 1.5em;
     text-indent: 1.0em;
     margin-bottom: 0;
-    margin-top: 0.4em;
+    margin-top: 0.3em;
 }
 h1 {
     display: block;
@@ -32,18 +32,21 @@ blockquote {
     line-height: 1.2em;
     margin-bottom: 0;
     margin-left: 2em;
-    margin-right: 0.5em;
+    margin-right: 1em;
     margin-top: 0;
   }
 blockquote p {
+    line-height: 1.25em;
     text-indent: 0;
+    margin-bottom: 0;
+    margin-top: 0;
   }
 code {
     display: block;
-    line-height: 1.2em;
+    line-height: 1.25em;
     margin-bottom: 0;
     margin-left: 2em;
-    margin-right: 0.5em;
+    margin-right: 1em;
     margin-top: 0;
   }
 /* title page*/

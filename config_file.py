@@ -12,16 +12,18 @@ default_config = {
             'UseDestDir': False,
             'DestDir': os.curdir,
             'FontFile': 'SeoulHangang.ttf',
-            'UseTitleInOutputName': False,
-            'ReformatText' : True,
-            'RemoveUntitledFirstChapter': True,
             'OutputEPub': True,
             'OutputMarkdown': False,
             'OutputPDF': False,
+            'UseTitleInOutputName': False,
+            'ReformatText' : True,
+            'SkipToFirstChapter': False,
+            'PreserveUserMeta': False,
             }
 boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
+            'OutputEPub', 'OutputMarkdown', 'OutputPDF',
             'ReformatText', 'RemoveUntitledFirstChapter',
-            'OutputEPub', 'OutputMarkdown', 'OutputPDF'
+            'PreserveUserMeta',
           ]
 
 def load(cfgfile):
