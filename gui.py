@@ -479,7 +479,7 @@ class MyOption(wx.Dialog):
         tgtlabel = wx.StaticText(self, wx.ID_ANY, u"글꼴")
         targetList = []
         import glob
-        for font in glob.glob("fonts/*.ttf"):
+        for font in glob.glob("fonts/*.[ot]tf"):
             targetList.append( os.path.basename(font) )
         if not config['FontFile'] in targetList:
             config['FontFile'] = targetList[0]

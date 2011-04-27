@@ -10,7 +10,7 @@ excludes = ['_gtkagg', '_tkagg', 'bsddb', 'curses', 'email', 'pywin.debugger',
             'Tkconstants', 'Tkinter']
 packages = []
 dll_excludes = ['libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll', 'tcl84.dll',
-                'tk84.dll']
+                'tk84.dll', 'w9xpopen.exe']
  
 setup(
     #console=['epubcheck.py'],
@@ -24,7 +24,7 @@ setup(
                           "excludes": excludes,
                           "packages": packages,
                           "dll_excludes": dll_excludes,
-                          "bundle_files": 3,
+                          "bundle_files": 1,
                           "dist_dir": "dist",
                           "xref": False,
                           "skip_archive": False,

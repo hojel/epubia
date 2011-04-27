@@ -12,9 +12,8 @@ class book_scraper:
     srch_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book'
     isbn_url = 'http://openapi.naver.com/search?key={0:s}&query={1:s}&display=1&target=book_adv&d_isbn={1:s}'
     img_url  = 'http://book.daum-img.net/image/KOR{0:s}'
-    #img_url  = 'http://image.kyobobook.co.kr/images/book/large/{1:s}/l{0:s}.jpg'
 
-    default_value = {'author':'','isbn':'',
+    default_value = {'title':'','author':'','isbn':'',
                      'cover_url':'',
                      'publisher':'','description':'','subject':''}
 
@@ -44,7 +43,8 @@ class book_scraper:
                         if e.childNodes:
                             pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'isbn':
-                        pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue.split(' ')[-1])
+                        if e.childNodes:
+                            pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue.split(' ')[-1])
                 if pkt['cover_url'] == '' and len(pkt['isbn']) == 13:
                     pkt['cover_url'] = self.img_url.format(pkt['isbn'], pkt['isbn'][-3:-1])
                 info.append( pkt )

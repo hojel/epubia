@@ -28,9 +28,9 @@ import os
 
 class EPubFile:
     def __init__(self, name):
-        self.epub = zipfile.ZipFile(name, 'w', zipfile.ZIP_DEFLATED)
-        self.saveData('application/epub+zip', '', 'mimetype')
-        self.addData(CONTAINER, 'META-INF', 'container.xml')
+        self.epub = zipfile.ZipFile(name, 'w')
+        self.addData('application/epub+zip', '', 'mimetype')
+        self.saveData(CONTAINER, 'META-INF', 'container.xml')
 
     def __del__(self):
         self.close()
@@ -47,7 +47,7 @@ class EPubFile:
         self.epub.writestr(os.path.join(subdir, relativeName), data)
 
     def saveData(self, data, subdir, relativeName):
-        self.epub.writestr(os.path.join(subdir, relativeName), data, zipfile.ZIP_STORED)
+        self.epub.writestr(os.path.join(subdir, relativeName), data, zipfile.ZIP_DEFLATED)
 
 def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
     pos = url.rfind('.',-5)
@@ -117,14 +117,14 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
             # coverpage
             cvrpg_tmpl = open(os.path.join(template_dir, 'coverpage.xhtml'),'r').read().decode('utf-8')
             cvrpg = str( Template(cvrpg_tmpl, searchList=[ {'gen':geninfo} ]) )
-            epub.addData(cvrpg, '', 'coverpage.xhtml')
+            epub.saveData(cvrpg, '', 'coverpage.xhtml')
         else:
             print >> sys.stderr, "ERROR: can not copy cover image, %s" % book['cover_url']
 
     # title page
     titpg_tmpl = open(os.path.join(template_dir, 'titlepage.xhtml'),'r').read().decode('utf-8')
     titpg = str( Template(titpg_tmpl, searchList=[ {'book':book} ]) )
-    epub.addData(titpg, OPS_DIR, 'titlepage.xhtml')
+    epub.saveData(titpg, OPS_DIR, 'titlepage.xhtml')
 
     # images from chapters
     img_list = []
@@ -139,7 +139,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
             if fmt:
                 imgdata = buf.getvalue()
                 fname = "image%d.%s" % (imgcnt, fmt)
-                epub.saveData(imgdata, OPS_DIR+"/image", fname)
+                epub.addData(imgdata, OPS_DIR+"/image", fname)
                 html = html.replace(url, "image/"+fname)
                 img_list.append( ("image/"+fname, fmt) )
             else:
@@ -151,23 +151,24 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
     ch_tmpl = open(os.path.join(template_dir, 'chapter.xhtml'),'r').read().decode('utf-8')
     for ch in book['chapter']:
         html = str( Template(ch_tmpl, searchList=[ {'book':book, 'ch':ch} ]) )
-        epub.addData(html, OPS_DIR, "chapter%d.xhtml" % ch['num'])
+        epub.saveData(html, OPS_DIR, ch['filename'])
 
     # CSS
     epub.addFile(os.path.join(template_dir,'generic.css'), OPS_DIR, 'generic.css')
     epub.addFile(target_css, OPS_DIR, 'target.css')
     if os.path.basename(target_css).startswith('Embed') and fontfile:
-        epub.addFile(os.path.join('fonts',fontfile), OPS_DIR, 'embedded.ttf')
+        extname = os.path.splitext(fontfile)[1]
+        epub.addFile(os.path.join('fonts',fontfile), OPS_DIR, 'embedded'+extname)
 
     # OPF
     opf_tmpl = open(os.path.join(template_dir, 'content.opf'),'r').read().decode('utf-8')
     opf = str( Template(opf_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
-    epub.addData(opf, '', 'content.opf')
+    epub.saveData(opf, '', 'content.opf')
 
     # NCX
     ncx_tmpl = open(os.path.join(template_dir, 'toc.ncx'),'r').read().decode('utf-8')
     ncx = str( Template(ncx_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
-    epub.addData(ncx, '', 'toc.ncx')
+    epub.saveData(ncx, '', 'toc.ncx')
 
     epub.close()
     epub = None

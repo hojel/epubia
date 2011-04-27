@@ -14,7 +14,7 @@ class book_scraper:
     img_url  = 'http://image.kyobobook.co.kr/images/book/large/{1:s}/l{0:s}.jpg'
     #img_url  = 'http://image.kyobobook.co.kr/images/book/xlarge/{1:s}/x{0:s}.jpg'
 
-    default_value = {'author':'','isbn':'',
+    default_value = {'title':'','author':'','isbn':'',
                      'cover_url':'',
                      'publisher':'','description':'','subject':''}
 

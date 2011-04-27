@@ -22,7 +22,12 @@ class txt_cleaner:
         self.ptn_sl_empty = re.compile(r'([^\n])\n\n([^\n])')
         self.ptn_quote_start = re.compile(r'''([\.!\?"'])\s*\n+(["'])''')
         self.ptn_quote_end = re.compile(r'''(["'])\s*\n+(\S)''')
-        self.ptn_quote_gap = re.compile(r'''(["'])\s*\n+(["'])''')
+        self.ptn_dblqt_begin = re.compile('^ *"([^"]*.) *$',re.M|re.U)
+        self.ptn_dblqt_end = re.compile('^ *(.[^"]*)" *$',re.M|re.U)
+        self.ptn_sglqt_begin = re.compile("^ *'([^']*.) *$",re.M|re.U)
+        self.ptn_sglqt_end = re.compile("^ *(.[^']*)' *$",re.M|re.U)
+        self.ptn_starhr = re.compile('(\* *\* *\*)',re.M|re.U)
+        self.ptn_minusli = re.compile('^( *)-',re.M|re.U)
         self.cleaned = False
 
     def convert(self, txt, start=1):
@@ -32,8 +37,8 @@ class txt_cleaner:
         txt = self.format_paragraph(txt)
         # break within word
         txt = self.recover_word(txt)
-        if self.cleaned:
-            txt = self.prettify_quote(txt)
+        # postprocess
+        txt = self.postprocess(txt)
         return txt
 
     def preprocess(self, txt, start=1):
@@ -77,7 +82,7 @@ class txt_cleaner:
             print "detect paragraph by indent"
             text = INDENTSTART_PTN.sub(r'\n',txt)
             self.cleaned = True
-        elif self.num_emptyline < 0.4 * self.num_paraend:
+        elif self.num_emptyline < 0.3 * self.num_paraend:
             if self.num_paraend > 0.8 * self.num_line:
                 # Type-3: paragraph in one line
                 print "detect single line paragraph"
@@ -99,12 +104,23 @@ class txt_cleaner:
             #text = re.compile(' (\w)\n(\w{2,})',re.U).sub(r'\n\1\2',text)
         return text
 
-    def prettify_quote(self, txt):
-        # wrap single quote block with empty lines
-        txt = self.ptn_quote_start.sub(r'\1\n\n\2', txt)
-        txt = self.ptn_quote_end.sub(r'\1\n\n\2', txt)
-        # merge sequent single line quotes in one block
-        #txt = self.ptn_quote_gap.sub(r'\1\n\n\2', txt)
+    def postprocess(self, txt):
+        if self.cleaned:
+            # wrap single quote block with empty lines
+            txt = self.ptn_quote_start.sub(r'\1\n\n\2', txt)
+            txt = self.ptn_quote_end.sub(r'\1\n\n\2', txt)
+        else:
+            # separate adjacent quoted statements (conservative way)
+            txt = re.sub(r'"\n"',r'"\n\n"',txt)
+            txt = re.sub(r"'\n'",r"'\n\n'",txt)
+        # transpose " and ' to better shapes
+        txt = self.ptn_dblqt_begin.sub(ur'“\1', txt)
+        txt = self.ptn_dblqt_end.sub(ur'\1”', txt)
+        txt = self.ptn_sglqt_begin.sub(ur'‘\1', txt)
+        txt = self.ptn_sglqt_end.sub(ur'\1’', txt)
+        # disable some markdown markers for better output
+        txt = self.ptn_starhr.sub(r'\t\g<1>', txt)
+        txt = self.ptn_minusli.sub(r'\g<1>\\-', txt)
         return txt
 
 def mark_chapter(text, toc_hdr):
@@ -136,11 +152,11 @@ def guess_block(txt):
     numch += len(CHAP_PTN2.findall(txt))
     if numch < 1:
         txt = CHAP_PTN3.sub(r'\n# \1\n\n', txt)
-    # section
-    numsec = 0
-    numsec += len(SECT_PTN1.findall(txt))
-    if numsec < 1:
-        txt = SECT_PTN2.sub(r'\n## \1\n\n', txt)
+        # section
+        numsec = 0
+        numsec += len(SECT_PTN1.findall(txt))
+        if numsec < 1:
+            txt = SECT_PTN2.sub(r'\n## \1\n\n', txt)
     return txt
 
 def guess_coding(txt, filename=''):
@@ -155,7 +171,7 @@ def guess_coding(txt, filename=''):
     if txt[:3] == codecs.BOM_UTF8:
         return 'utf-8'
     import chardet
-    detsz = min(4000, len(txt))
+    detsz = min(10000, len(txt))
     coding = chardet.detect(txt[:detsz])['encoding']
     print "coding %s is detected" % coding
     if coding is None or coding == 'EUC-KR':

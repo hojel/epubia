@@ -21,10 +21,8 @@
 </metadata>
   <manifest>
     <item href="OPS/titlepage.xhtml" id="titlepage" media-type="application/xhtml+xml"/>
-#for $num in range(len($book['chapter']))
-#set $id    = "chapter%d" % ($num+1)
-#set $fname = "chapter%d.xhtml" % ($num+1)
-    <item href="OPS/$fname" id="$id" media-type="application/xhtml+xml"/>
+#for $ch in $book['chapter']
+    <item href="OPS/$ch['filename']" id="$ch['id']" media-type="application/xhtml+xml"/>
 #end for
     <item href="OPS/generic.css" id="css1" media-type="text/css"/>
     <item href="OPS/target.css" id="css2" media-type="text/css"/>
@@ -41,12 +39,11 @@
   </manifest>
   <spine toc="ncx">
 #if $gen['coverimage']
-    <itemref idref="coverpage"/>
+    <itemref idref="coverpage" linear="no"/>
 #end if
     <itemref idref="titlepage"/>
 #for $ch in $book['chapter']
-#set $id = "chapter%d" % $ch['num']
-    <itemref idref="$id"/>
+    <itemref idref="$ch['id']"/>
 #end for
   </spine>
   <guide>
