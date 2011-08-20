@@ -92,7 +92,7 @@ def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
     return fmt
 
 def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
-            fontfile='arial.ttf'):
+            fontfile='arial.ttf', toclevel=2):
     import time
     import uuid
     geninfo = {'name':__program__,
@@ -100,6 +100,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
                'timestamp':time.strftime("%Y-%m-%d"),
                'coverimage':None,
                'uuid':uuid.uuid4(),
+               'toclevel':toclevel,
               }
 
     epub = EPubFile(outfile)

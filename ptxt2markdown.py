@@ -1,8 +1,12 @@
 # -*- encoding: utf-8 -*-
 # Plain Text to Formatted Text
 #
-# Markdown
-#    chapter (=========) 
+# Added markup
+#    &          null paragraph
+# Disabled markup
+#    -          list item
+# Changed markup
+#    * * *      horizontal line -> predefined paragraph separator
 
 import codecs
 import re
@@ -27,7 +31,7 @@ class txt_cleaner:
         self.ptn_sglqt_begin = re.compile("^ *'([^']*.) *$",re.M|re.U)
         self.ptn_sglqt_end = re.compile("^ *(.[^']*)' *$",re.M|re.U)
         self.ptn_starhr = re.compile('(\* *\* *\*)',re.M|re.U)
-        self.ptn_minusli = re.compile('^( *)-',re.M|re.U)
+        self.ptn_minusli = re.compile('^( *)-([^-])',re.M|re.U)
         self.cleaned = False
 
     def convert(self, txt, start=1):
@@ -98,7 +102,7 @@ class txt_cleaner:
         numsch = len(re.compile('\S\n\S ',re.U).findall(text))  # single character in line start
         #print "word break: %d / %d" % (numsch, numline)
         if numsch > numline*0.08:
-            print "Detect word break over lines"
+            print "Suspect word break over lines"
             text = re.compile('(\w)\n([다자까아][\.\?!])',re.U).sub(r'\1\2\n',text)
             text = re.compile('(\w)\n([이가을를은는도]) ',re.U).sub(r'\1\2\n',text)
             #text = re.compile(' (\w)\n(\w{2,})',re.U).sub(r'\n\1\2',text)
@@ -111,16 +115,19 @@ class txt_cleaner:
             txt = self.ptn_quote_end.sub(r'\1\n\n\2', txt)
         else:
             # separate adjacent quoted statements (conservative way)
-            txt = re.sub(r'"\n"',r'"\n\n"',txt)
-            txt = re.sub(r"'\n'",r"'\n\n'",txt)
+            txt = re.sub(r'"\n( *)"',r'"\n\n\1"',txt)
+            txt = re.sub(r"'\n( *)'",r"'\n\n\1'",txt)
         # transpose " and ' to better shapes
         txt = self.ptn_dblqt_begin.sub(ur'“\1', txt)
         txt = self.ptn_dblqt_end.sub(ur'\1”', txt)
         txt = self.ptn_sglqt_begin.sub(ur'‘\1', txt)
         txt = self.ptn_sglqt_end.sub(ur'\1’', txt)
-        # disable some markdown markers for better output
+        # Disable some markdown markers for better output
+        #    1) horizontal line drawing by '* * *'
+        #    2) list starting with '-' 
+        #         use alternative way starting with '*' 
         txt = self.ptn_starhr.sub(r'\t\g<1>', txt)
-        txt = self.ptn_minusli.sub(r'\g<1>\\-', txt)
+        txt = self.ptn_minusli.sub(r'\g<1>\\-\g<2>', txt)
         return txt
 
 def mark_chapter(text, toc_hdr):

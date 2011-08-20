@@ -15,7 +15,7 @@ dll_excludes = ['libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll', 'tcl84.dll',
 setup(
     #console=['ptxt2epub/ptxt2epub.py'],
     windows=['epubia.py', 'tools/tgtxchg/tgtxchg.py'],
-    data_files=[("target", ["target/Nothing.css", "target/Embed.css",
+    data_files=[("target", ["target/None.css", "target/Embed.css",
 			    "target/NookColor.css",
                             "target/Nuut.css", "target/SonyReader.css",
                             ]),

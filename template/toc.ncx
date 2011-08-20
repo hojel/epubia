@@ -30,21 +30,22 @@
 #for $ch in $book['chapter']
 #if $ch['name']
 #set $order = $order + 1
-#set $fname = "chapter%d.xhtml" % $ch['num']
     <navPoint class="h1" id="np-$order" playOrder="$order">
       <navLabel>
         <text>$ch['name']</text>
       </navLabel>
-      <content src="OPS/$fname"/>
+      <content src="OPS/$ch['filename']"/>
+#if $gen['toclevel'] > 1
 #for $sec in $ch['section']
 #set $order = $order + 1
       <navPoint class="h2" id="np-$order" playOrder="$order">
         <navLabel>
           <text>$sec['name']</text>
         </navLabel>
-      <content src="OPS/$fname#$sec['id']"/>
+      <content src="OPS/$ch['filename']#$sec['id']"/>
       </navPoint>
 #end for
+#end if
     </navPoint>
 #end if
 #end for

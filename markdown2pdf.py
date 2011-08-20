@@ -14,6 +14,9 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     global debug
     md = markdown.Markdown(extensions=['meta','footnotes'])
     html = md.convert(text)
+    # postprocess unofficial markup
+    #  1) <p>&amp;</p> --> <p class="blankpara">&#160;</p>
+    html = html.replace('<p>&amp;</p>', '<p class="blankpara">&#160;</p>')
     if debug:
         open('test.html','w').write(html.encode('utf-8'))
     htmline = []

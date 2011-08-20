@@ -254,6 +254,7 @@ class MyFrame(wx.Frame):
                                 template_dir = self.tmpldir,
                                 src_dir = os.path.dirname(txtfile),
                                 fontfile=self.config['FontFile'],
+                                tocLevel=self.config['MaxBrowseLevel'],
                                 skipTo1st = self.config['SkipToFirstChapter'] )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:

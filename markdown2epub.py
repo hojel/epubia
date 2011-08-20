@@ -32,7 +32,7 @@ def fix_fnref_anchor(match):
     
 def markdown2epub(text, epubfile, target_css='target/None.css',
         template_dir='./template', src_dir='.',
-        fontfile='arial.ttf', skipTo1st=False):
+        fontfile='arial.ttf', tocLevel=2, skipTo1st=False):
     md = markdown.Markdown(
             extensions=['def_list', 'footnotes', 'tables', 'toc', 'meta'],
             #extension_configs={'footnotes' : ('PLACE_MARKER','====footnote====')},
@@ -40,6 +40,9 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             output_format="xhtml1"
     )
     html = md.convert(text)
+    # postprocess unofficial markup
+    #  1) <p>&amp;</p> --> <p class="blankpara">&#160;</p>
+    html = html.replace('<p>&amp;</p>', '<p class="blankpara">&#160;</p>')
     # book info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
             'publisher':'', 'summary':'', 'subject':'', 'isbn':'', 'cover_url':''}
@@ -75,7 +78,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             if chid.startswith('_'):
                 chid = 'ch'+chid
             if chid == '':
-                chid = 'ch_0'
+                chid = "_%d" % chcnt
             #chtm = chtm.replace('<code>','<blockquote>').replace('</code>','</blockquote>')
             chtm = re.compile('<h2 id="(.*?)">').sub(r'<h2 id="sec\g<1>">', chtm)
             sections = [{'name':name, 'id':id} for id,name in re.compile('<h2 id="(.*?)">(.*?)</h2>').findall(chtm)]
@@ -116,7 +119,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             ch['html'] = re.compile('"#(fnref_.*?)"').sub(fix_fnref_anchor, ch['html'])
     # generate ePub
     epubgen.epubgen(book, epubfile, target_css=target_css, template_dir=template_dir, src_dir=src_dir,
-                    fontfile=fontfile)
+                    fontfile=fontfile, toclevel=tocLevel)
 
 if __name__ == "__main__":
     text = unicode(open("../txt/sung1.txt",'r').read(),'utf-8')[1:]

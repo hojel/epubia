@@ -49,6 +49,10 @@ code {
     margin-right: 1em;
     margin-top: 0;
   }
+p.blankpage {
+    line-height: 1.3em;
+    margin-top: 0;
+}
 /* title page*/
 div.titlepage {
     display: block;

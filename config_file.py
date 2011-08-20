@@ -17,12 +17,13 @@ default_config = {
             'OutputPDF': False,
             'UseTitleInOutputName': False,
             'ReformatText' : True,
+            'MaxBrowseLevel': 2,
             'SkipToFirstChapter': False,
             'PreserveUserMeta': False,
             }
 boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
             'OutputEPub', 'OutputMarkdown', 'OutputPDF',
-            'ReformatText', 'RemoveUntitledFirstChapter',
+            'ReformatText', 'SkipToFirstChapter',
             'PreserveUserMeta',
           ]
 
