@@ -7,7 +7,7 @@ __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
 OPS_DIR  = 'OPS'
-IMG_SIZE = (480,640)
+IMG_SIZE = (600,800)
 
 import re
 IMG_PTN = re.compile('<img [^>]*src="(.*?)"',re.M)

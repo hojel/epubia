@@ -1,0 +1,53 @@
+/* place font files in /fonts of SD card */
+/* /sdcard means internal memory */
+@font-face  {
+font-family: "NanumFont", serif;
+font-weight: normal;
+font-style: normal;
+src: url(res:///mnt/extsd/fonts/NanumMyeongjo.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", serif;
+font-weight: normal;
+font-style: italic;
+src: url(res:///mnt/extsd/fonts/NanumBrush.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", serif;
+font-weight: bold;
+src: url(res:///mnt/extsd/fonts/NanumMyeongjoBold.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", sans-serif;
+font-weight: normal;
+src: url(res:///mnt/extsd/fonts/NanumGothic.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", sans-serif;
+font-weight: bold;
+src: url(res:///mnt/extsd/fonts/NanumGothicBold.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", monospace;
+font-weight: normal;
+src: url(res:///mnt/extsd/fonts/NanumGothicCoding.ttf);
+}
+
+@font-face  {
+font-family: "NanumFont", monospace;
+font-weight: bold;
+src: url(res:///mnt/extsd/fonts/NanumGothicCodingBold.ttf);
+}
+
+body {
+font-family: "NanumFont", serif;
+}
+
+pre {
+font-family: "NanumFont", monospace;
+}

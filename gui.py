@@ -74,6 +74,7 @@ class MyFrame(wx.Frame):
 
         # file table
         self.grid = MyGrid(panel)
+        self.grid.SetDropTarget( FileDropTarget(self) );
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(btnszer1, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
@@ -99,29 +100,32 @@ class MyFrame(wx.Frame):
             self.grid.table.SetValue(row, 0, False)
 
     def runImport(self, evt):
-        import ptxt2markdown
         # multi-file open dialogue
         """ Open a file"""
         dlg = wx.FileDialog(self, "Choose files", self.dirname, "", "*.txt", wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             self.dirname = dlg.GetDirectory()
             for fname in dlg.GetFilenames():
-                newrow = self.grid.table.GetNumberRows()
-                self.scrap.append({'file':fname,'dir':self.dirname})
-                # add new row
-                self.grid.table.SetValue( newrow, 0, True )
-                self.grid.table.SetValue( newrow, 1, fname )
-                # try to fetch directive inside
-                text = ptxt2markdown.load( os.path.join(self.dirname,fname) )
-                info = ptxt2markdown.extract_meta(text)
-                if 'title' in info:
-                    self.grid.table.SetValue( newrow, 2, info['title'] )
-                if 'author' in info:
-                    self.grid.table.SetValue( newrow, 3, info['author'] )
-                if 'isbn' in info:
-                    self.grid.table.SetValue( newrow, 4, info['isbn'] )
-                self.scrap[newrow]['info'] = info
+                self.loadFile(fname)
         dlg.Destroy()
+
+    def loadFile(self, fname):
+        import ptxt2markdown
+        newrow = self.grid.table.GetNumberRows()
+        self.scrap.append({'file':fname,'dir':self.dirname})
+        # add new row
+        self.grid.table.SetValue( newrow, 0, True )
+        self.grid.table.SetValue( newrow, 1, fname )
+        # try to fetch directive inside
+        text = ptxt2markdown.load( os.path.join(self.dirname,fname) )
+        info = ptxt2markdown.extract_meta(text)
+        if 'title' in info:
+            self.grid.table.SetValue( newrow, 2, info['title'] )
+        if 'author' in info:
+            self.grid.table.SetValue( newrow, 3, info['author'] )
+        if 'isbn' in info:
+            self.grid.table.SetValue( newrow, 4, info['isbn'] )
+        self.scrap[newrow]['info'] = info
 
     def runRemove(self, evt):
         cntl = range(self.grid.table.GetNumberRows())
@@ -447,6 +451,16 @@ class MyGrid(gridlib.Grid):
         else:
             # sort in column
             pass    # not yet
+
+#--------------------------------------------------
+class FileDropTarget(wx.FileDropTarget):
+    def __init__(self, obj):
+        wx.FileDropTarget.__init__(self)
+        self.obj = obj
+
+    def OnDropFiles(self, x, y, filenames):
+        for fname in filenames:
+            self.obj.loadFile(fname)
 
 #--------------------------------------------------
 class MyOption(wx.Dialog):

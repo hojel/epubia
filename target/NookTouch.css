@@ -1,6 +1,0 @@
-/* use Android system font */
-@font-face     {font-family: eb_normal; src: url(res:///system/fonts/DroidSansFallback.ttf);}
-body p div     {font-family: eb_normal;}
-h1 h2 h3       {font-family: eb_normal; font-weight:bold;}
-div.booktitle  {font-family: eb_normal; font-weight:bold;}
-div.bookauthor {font-family: eb_normal; font-weight:bold;} 

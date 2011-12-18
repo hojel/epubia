@@ -1,0 +1,13 @@
+/* use Android system font */
+@font-face  {
+font-family: DroidFont;
+src: url(res:///ebook/fonts/DroidSansFallback.ttf);
+}
+
+body {
+font-family: DroidFont, serif;
+}
+
+pre {
+font-family: DroidFont, monospace;
+}

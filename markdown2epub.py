@@ -40,9 +40,12 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             output_format="xhtml1"
     )
     html = md.convert(text)
-    # postprocess unofficial markup
-    #  1) <p>&amp;</p> --> <p class="blankpara">&#160;</p>
-    html = html.replace('<p>&amp;</p>', '<p class="blankpara">&#160;</p>')
+    # post-process unofficial markup
+    #  1) <p>~ ~ ~</p> --> <p class="blankpara">&#160;</p>
+    #  2) remove <code>, </code>
+    html = html.replace('<p>~ ~ ~</p>', '<p class="blankpara">&#160;</p>')
+    html = html.replace('<code>', '')
+    html = html.replace('</code>', '')
     # book info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
             'publisher':'', 'summary':'', 'subject':'', 'isbn':'', 'cover_url':''}
