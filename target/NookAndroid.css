@@ -9,5 +9,13 @@ font-family: DroidFont, serif;
 }
 
 pre {
-font-family: DroidFont, monospace;
+font-family: DroidFont, sans-serif;
+}
+
+code {
+font-family: DroidFont, sans-serif;
+}
+
+em {
+font-style: normal;
 }

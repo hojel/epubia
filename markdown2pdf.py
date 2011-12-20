@@ -16,10 +16,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     html = md.convert(text)
     # post-process unofficial markup
     #  1) <p>~ ~ ~</p> --> <p class="blankpara">&#160;</p>
-    #  2) remove <code>, </code>
     html = html.replace('<p>~ ~ ~</p>', '<p class="blankpara">&#160;</p>')
-    html = html.replace('<code>', '')
-    html = html.replace('</code>', '')
     if debug:
         open('test.html','w').write(html.encode('utf-8'))
     htmline = []

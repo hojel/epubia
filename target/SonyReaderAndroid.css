@@ -10,10 +10,12 @@ font-family: DroidFont, serif;
 
 pre {
 font-family: DroidFont, sans-serif;
-font-style: normal;
+}
+
+code {
+font-family: DroidFont, sans-serif;
 }
 
 em {
-font-family: DroidFont, sans-serif;
 font-style: normal;
 }
