@@ -10,10 +10,10 @@ body {
     orphans: 0;
     }
 p {
-    line-height: 1.25em;
-    text-indent: 0.75em;
+    line-height: 1.3em;
+    text-indent: 1.5em;
     margin-bottom: 0;
-    margin-top: 0.25em;
+    margin-top: 0em;
 }
 h1 {
     display: block;
@@ -47,10 +47,10 @@ pre {
     margin-bottom: 0.25em;
     margin-left: 2em;
     margin-right: 1em;
-    margin-top: 0.5em;
+    margin-top: 0.25em;
   }
 p.blankpage {
-    line-height: 1.3em;
+    line-height: 0.8em;
     margin-top: 0;
     margin-bottom: 0;
 }
@@ -74,4 +74,13 @@ div.bookauthor {
 div.booksubauthor {
     font-size: medium;
     padding-top: 5%;
+    }
+/* cover page*/
+div.coverpage {
+    text-align: center;
+    page-break-after: always;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
     }

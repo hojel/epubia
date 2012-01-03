@@ -11,7 +11,11 @@
     <dc:language>$book['lang']</dc:language>
     <dc:title>$book['title']</dc:title>
     <meta name="cover" content="cover"/>
+#if $book['publishdate']
+    <dc:date>$book['publishdate']</dc:date>
+#else
     <dc:date>$gen['timestamp']</dc:date>
+#end if
     <dc:contributor opf:role="bkp">$gen['name'] ($gen['version'])</dc:contributor>
     <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/"
         opf:scheme="ISBN">urn:isbn:$book['isbn']</dc:identifier>

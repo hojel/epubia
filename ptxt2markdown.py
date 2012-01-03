@@ -6,6 +6,7 @@
 # Disabled markup
 #    -          list item
 # Changed markup
+#    ---        horizontal line -> predefined paragraph separator
 #    * * *      horizontal line -> predefined paragraph separator
 
 import codecs
@@ -31,6 +32,7 @@ class txt_cleaner:
         self.ptn_sglqt_begin = re.compile("^ *'([^']*.) *$",re.M|re.U)
         self.ptn_sglqt_end = re.compile("^ *(.[^']*)' *$",re.M|re.U)
         self.ptn_starhr = re.compile('(\* *\* *\*)',re.M|re.U)
+        self.ptn_dash3hr = re.compile('^ *--- *$',re.M)
         self.ptn_minusli = re.compile('^( *)-([^-])',re.M|re.U)
         self.cleaned = False
 
@@ -56,9 +58,8 @@ class txt_cleaner:
         # clean empty line
         txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
         # filter special character
-        txt = txt.replace(u'”','"').replace(u'“','"')
-        txt = txt.replace(u"‘","'").replace(u"’","'")
-        #txt = txt.replace(u'『',"'").replace(u'』',"'")
+        #txt = txt.replace(u'“ ','"').replace(u'”','"')
+        #txt = txt.replace(u"‘ ","'").replace(u"’","'")
         return txt
 
     def analyze_paragraph(self, txt):
@@ -127,6 +128,7 @@ class txt_cleaner:
         #    2) list starting with '-' 
         #         use alternative way starting with '*' 
         txt = self.ptn_starhr.sub(r'\t\g<1>', txt)
+        txt = self.ptn_dash3hr.sub(r'- - -', txt)
         txt = self.ptn_minusli.sub(r'\g<1>\\-\g<2>', txt)
         return txt
 

@@ -1,52 +1,22 @@
-/* place font files in /fonts of 1st attached disk */
+/* Copy NanumGothicBold.ttf under fonts/ in storage device. */
 @font-face  {
-font-family: "NanumFont", serif;
-font-weight: normal;
-font-style: normal;
-src: url(res:///media/fonts/NanumMyeongjo.ttf);
-}
-
-@font-face  {
-font-family: "NanumFont", serif;
-font-weight: normal;
-font-style: italic;
-src: url(res:///media/fonts/NanumBrush.ttf);
-}
-
-@font-face  {
-font-family: "NanumFont", serif;
-font-weight: bold;
-src: url(res:///media/fonts/NanumMyeongjoBold.ttf);
-}
-
-@font-face  {
-font-family: "NanumFont", sans-serif;
-font-weight: normal;
-src: url(res:///media/fonts/NanumGothic.ttf);
-}
-
-@font-face  {
-font-family: "NanumFont", sans-serif;
-font-weight: bold;
+font-family: UserFont;
 src: url(res:///media/fonts/NanumGothicBold.ttf);
 }
 
-@font-face  {
-font-family: "NanumFont", monospace;
-font-weight: normal;
-src: url(res:///media/fonts/NanumGothicCoding.ttf);
-}
-
-@font-face  {
-font-family: "NanumFont", monospace;
-font-weight: bold;
-src: url(res:///media/fonts/NanumGothicCodingBold.ttf);
-}
-
 body {
-font-family: "NanumFont", serif;
+font-family: UserFont, serif;
 }
 
 pre {
-font-family: "NanumFont", monospace;
+font-family: UserFont, sans-serif;
+}
+
+code {
+font-family: UserFont, sans-serif;
+}
+
+em {
+font-style: normal;
+font-weight: bold;
 }

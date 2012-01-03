@@ -15,7 +15,8 @@ class book_scraper:
 
     default_value = {'title':'','author':'','isbn':'',
                      'cover_url':'',
-                     'publisher':'','description':'','subject':''}
+                     'publisher':'','publishdate':'',
+                     'description':'','subject':''}
 
     def __init__(self):
         pass
@@ -39,6 +40,9 @@ class book_scraper:
                         pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m5')
                     elif e.nodeName == 'publisher':
                         pkt['publisher'] = e.childNodes[0].nodeValue
+                    elif e.nodeName == 'pubdate':
+                        ss = e.childNodes[0].nodeValue
+                        pkt['publishdate'] = "%s-%s-%s" % (ss[0:4],ss[4:6],ss[6:8])
                     elif e.nodeName == 'description':
                         if e.childNodes:
                             pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)

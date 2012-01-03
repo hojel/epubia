@@ -15,8 +15,9 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     md = markdown.Markdown(extensions=['meta','footnotes'])
     html = md.convert(text)
     # post-process unofficial markup
-    #  1) <p>~ ~ ~</p> --> <p class="blankpara">&#160;</p>
-    html = html.replace('<p>~ ~ ~</p>', '<p class="blankpara">&#160;</p>')
+    #  1) <p>- - -</p> --> <p class="blankpara">&#160;</p>
+    #  2) quotation mark
+    html = html.replace('<p>- - -</p>', '<p class="blankpara">&#160;</p>')
     if debug:
         open('test.html','w').write(html.encode('utf-8'))
     htmline = []

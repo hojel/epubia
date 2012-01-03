@@ -83,7 +83,7 @@ def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
     elif fmt=='jpg':
         fmt = 'jpeg'
     else:
-        print "WARNING: unknown format, %s" % fmt
+        print "WARNING: image has unknown format, %s" % fmt
         img = img.convert('RGB')
         fmt = 'png'
     if bw:  # Dither

@@ -1,0 +1,13 @@
+/* Use only regular font. i.e. exclude monospace/italic fonts. */
+pre {
+font-family: sans-serif;
+}
+
+code {
+font-family: sans-serif;
+}
+
+em {
+font-style: normal;
+font-weight: bold;
+}
