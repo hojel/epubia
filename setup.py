@@ -32,7 +32,7 @@ setup(
                              ]),
                 ("fonts", ["fonts/SeoulHangang.ttf",
                            ]),
-                ("", ["README.txt"]),
+                ("", ["README.txt", "LICENSE.txt"]),
             ],
     options = {"py2exe": {"compressed": 2,
                           "optimize": 2,
