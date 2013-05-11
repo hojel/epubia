@@ -2,7 +2,7 @@
 import py2exe
 
 import sys
-sys.path.append('c:/Program Files/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT')
+sys.path.append('C:/Program Files (x86)/Common Files/Microsoft Shared/VSTO/10.0')
  
 includes = ['html5lib']
 excludes = ['_gtkagg', '_tkagg', 'bsddb', 'curses', 'email', 'pywin.debugger',

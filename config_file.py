@@ -17,6 +17,7 @@ default_config = {
             'OutputPDF': False,
             'UseTitleInOutputName': False,
             'ReformatText' : True,
+            'CorrectWordBreak' : '',
             'MaxBrowseLevel': 2,
             'SkipToFirstChapter': False,
             'PreserveUserMeta': False,

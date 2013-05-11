@@ -42,9 +42,9 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
     )
     html = md.convert(text)
     # post-process unofficial markup
-    #  1) <p>- - -</p> --> <p class="blankpara">&#160;</p>
+    #  1) <p>*</p> --> <p class="blankpara">&#160;</p>
     #  2) quotation mark
-    html = html.replace('<p>- - -</p>', '<p class="blankpara">&#160;</p>')
+    html = html.replace('<p>*</p>', '<p class="blankpara">&#160;</p>')
     html = html.replace(u'“ ',"&#8220;").replace(u'”',"&#8221;")
     html = html.replace(u"‘ ","&#8216;").replace(u"’","&#8217;")
     # book info

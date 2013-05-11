@@ -29,6 +29,9 @@ class book_scraper:
     def parse(self,xml):
         info = []
         dom = parseString(xml)
+        if dom.childNodes[0].nodeName == 'apierror':
+        	print "Daum API Access Error"
+        	return None
         assert dom.childNodes[0].nodeName == 'channel'
         for node in dom.childNodes[0].childNodes:
             if node.nodeName == 'item':

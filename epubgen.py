@@ -23,7 +23,7 @@ CONTAINER = '''<?xml version="1.0"?>
 from Cheetah.Template import Template
 from StringIO import StringIO
 import zipfile
-import Image
+from PIL import Image
 import os
 
 class EPubFile:
@@ -67,7 +67,12 @@ def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
             imgdata = open(url,'rb').read()
     except:
         return None
-    img = Image.open(StringIO(imgdata))
+
+    try:
+        img = Image.open(StringIO(imgdata))
+    except:
+        return None
+    
     # Scale
     if maxsize and (img.size[0] > maxsize[0] or img.size[1] > maxsize[1]):
         xscale = float(maxsize[0]) / img.size[0]

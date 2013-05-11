@@ -49,5 +49,9 @@ font-family: "NanumFont", serif;
 }
 
 pre {
-font-family: "NanumFont", monospace;
+font-family: "NanumFont", sans-serif;
+}
+
+code {
+font-family: "NanumFont", sans-serif;
 }

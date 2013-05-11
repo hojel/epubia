@@ -110,21 +110,24 @@ class MyFrame(wx.Frame):
         dlg.Destroy()
 
     def loadFile(self, fname):
-        import ptxt2markdown
+        import txtformat
+        from ftxt2markdown import extract_meta
         newrow = self.grid.table.GetNumberRows()
         self.scrap.append({'file':fname,'dir':self.dirname})
         # add new row
         self.grid.table.SetValue( newrow, 0, True )
         self.grid.table.SetValue( newrow, 1, fname )
         # try to fetch directive inside
-        text = ptxt2markdown.load( os.path.join(self.dirname,fname) )
-        info = ptxt2markdown.extract_meta(text)
+        text = txtformat.load( os.path.join(self.dirname,fname) )
+        info = extract_meta(text)
         if 'title' in info:
             self.grid.table.SetValue( newrow, 2, info['title'] )
         if 'author' in info:
             self.grid.table.SetValue( newrow, 3, info['author'] )
         if 'isbn' in info:
             self.grid.table.SetValue( newrow, 4, info['isbn'] )
+        if 'cover_url' in info:
+            self.grid.table.SetValue( newrow, 5, info['cover_url'] )
         self.scrap[newrow]['info'] = info
 
     def runRemove(self, evt):
@@ -158,6 +161,7 @@ class MyFrame(wx.Frame):
         for row in range(self.grid.table.GetNumberRows()):
             if self.grid.table.GetValue(row, 0):        # selected
                 fname  = self.grid.table.GetValue(row, 1)
+                fname = os.path.splitext(os.path.split(fname)[1])[0]
                 title  = self.grid.table.GetValue(row, 2)
                 isbn   = self.grid.table.GetValue(row, 4)
                 # scrapping main
@@ -175,7 +179,7 @@ class MyFrame(wx.Frame):
                 else:
                     (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % fname)
                     if not keepGoing: break
-                    srch = os.path.splitext(fname)[0]
+                    srch = fname
                     rslt = self.scraper.search( srch.encode('utf-8') )
                     if rslt:
                         info = rslt[0]
@@ -191,6 +195,7 @@ class MyFrame(wx.Frame):
                 self.grid.table.SetValue(row, 2, self.scrap[row]['info']['title'])
                 self.grid.table.SetValue(row, 3, self.scrap[row]['info']['author'])
                 self.grid.table.SetValue(row, 4, self.scrap[row]['info']['isbn'])
+                self.grid.table.SetValue(row, 5, self.scrap[row]['info']['cover_url'])
                 cnt += 1
         if keepGoing:
             dlg.Update(cnt, u"완료")
@@ -198,7 +203,8 @@ class MyFrame(wx.Frame):
             dlg.Update(maxcnt, u"취소")
 
     def runConvert(self, evt):
-        import ptxt2markdown
+        import txtformat
+        from ftxt2markdown import insert_meta
         # get total count to do
         cnt = 0
         for row in range(self.grid.table.GetNumberRows()):
@@ -221,9 +227,12 @@ class MyFrame(wx.Frame):
             if self.grid.table.GetValue(row, 0):        # selected
                 # load
                 txtfile = os.path.join( self.scrap[row]['dir'], self.scrap[row]['file'] )
-                text = ptxt2markdown.load(txtfile)
+                text = txtformat.load(txtfile)
                 if self.config['ReformatText']:
-                    text = ptxt2markdown.clean(text)
+                    correct_word_break = self.config['CorrectWordBreak']
+                    if not correct_word_break:
+                        correct_word_break = None
+                    text = txtformat.clean(text, correct_word_break=correct_word_break)
                 info = self.scrap[row]['info']
                 info['title']  = self.grid.table.GetValue(row, 2)
                 if not info['title']: del info['title']
@@ -232,7 +241,7 @@ class MyFrame(wx.Frame):
                 info['isbn']   = self.grid.table.GetValue(row, 4)
                 if not info['isbn']: del info['isbn']
                 info['language'] = 'Korean'
-                atxt = ptxt2markdown.insert_meta(text, info)
+                atxt = insert_meta(text, info)
 
                 dlgtit = u'<미지정>'
                 if 'title' in info:
@@ -337,9 +346,10 @@ class MyDataTable(gridlib.PyGridTableBase):
     def __init__(self):
         gridlib.PyGridTableBase.__init__(self)
 
-        self.colLabels = [u"선택", u"파일이름", u"제목", u"저자", "ISBN"]
+        self.colLabels = [u"선택", u"파일이름", u"제목", u"저자", "ISBN", u"이미지"]
 
         self.dataTypes = [gridlib.GRID_VALUE_BOOL,
+                          gridlib.GRID_VALUE_STRING,
                           gridlib.GRID_VALUE_STRING,
                           gridlib.GRID_VALUE_STRING,
                           gridlib.GRID_VALUE_STRING,
@@ -423,6 +433,7 @@ class MyGrid(gridlib.Grid):
         self.SetColSize(2, 200)     # title
         self.SetColSize(3, 100)     # author
         self.SetColSize(4, 100)     # isbn
+        self.SetColSize(5, 100)     # cover_url
 
         gridlib.EVT_GRID_CELL_LEFT_DCLICK(self, self.OnCellClick)
         gridlib.EVT_GRID_LABEL_LEFT_CLICK(self, self.OnLabelClick)
@@ -537,6 +548,21 @@ class MyOption(wx.Dialog):
 
         sizer.Add(mvs, 0, wx.ALIGN_CENTRE_VERTICAL|wx.ALL, 5)
 
+        # Extra Control
+        box3_title = wx.StaticBox(self, wx.ID_ANY, u"기타")
+        box3  = wx.StaticBoxSizer(box3_title, wx.VERTICAL)
+        grid31 = wx.FlexGridSizer(0, 2, 0, 0)
+
+        label1 =  wx.StaticText(self, wx.ID_ANY, u"단어분리 교정")
+        self.wordbreak_cb = wx.Choice(self, choices=['Disabled', 'Pattern', 'Naver Autospacing'])
+        self.wordbreak_cb.SetStringSelection(({'':'Disabled', 'pattern':'Pattern', 'naver_autospacing':'Naver Autospacing'})[config['CorrectWordBreak']])
+        grid31.Add( label1, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+        grid31.Add( self.wordbreak_cb, 0, wx.ALIGN_CENTRE|wx.LEFT, 5 );
+
+        box3.Add( grid31, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+
+        sizer.Add(box3, 0, wx.ALIGN_CENTER, 5)
+
         # Output Format
         outfmt_list = [ 'ePub', 'Markdown Text', 'PDF' ]
         self.outfmt_lb = wx.CheckListBox(self, wx.ID_ANY, choices=outfmt_list, name=u"출력")
@@ -589,6 +615,9 @@ class MyOption(wx.Dialog):
             config['%sAPIKey' % srvname] = text.GetLabel()
             if radio.GetValue():
                 config['Scraper'] = srvname
+        #
+        sel = self.wordbreak_cb.GetCurrentSelection()
+        config['CorrectWordBreak'] = (['', 'pattern', 'naver_autospacing'])[sel]
         #
         config['OutputEPub'] = False
         config['OutputPDF'] = False
