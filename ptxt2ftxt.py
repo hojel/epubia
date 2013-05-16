@@ -5,13 +5,13 @@
 
 import re
 
-EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
-PARAEND_PTN = re.compile(r'''([\.\?!'"\)])\s*$''',re.M|re.U)
-INDENTSTART_PTN = re.compile(r'''^([ ]{1,3})''',re.M|re.U)      # preserve Markdown block (4 spaces or tab)
-
-QOpenChr  = u'“『「<"'
-QCloseChr = u'”』」>"'
+QOpenChr  = u'''“『「<'"'''
+QCloseChr = u'''”』」>'"'''
 SEndChr   = u'\.!\?,'
+
+EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
+PARAEND_PTN = re.compile(r'''([%s%s])\s*$''' %(SEndChr,QCloseChr),re.M|re.U)
+INDENTSTART_PTN = re.compile(r'''^([ ]{1,3})''',re.M|re.U)      # preserve Markdown block (4 spaces or tab)
 
 #------------------------------------------------------
 def ptxt2ftxt(txt, startline=1, pretty_quote=False):
@@ -67,7 +67,7 @@ def analyze_paragraph(txt):
         print "detect all lines are separated by empty line"
         num_removed = num_line/2
         num_line -= num_removed
-        num_empty_line -= num_removed
+        num_emptyline -= num_removed
         num_paraend -= num_removed
     if num_indentline > num_emptyline:
         # Type-2: paragraph by indent

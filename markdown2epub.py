@@ -34,8 +34,11 @@ def fix_fnref_anchor(match):
 def markdown2epub(text, epubfile, target_css='target/None.css',
         template_dir='./template', src_dir='.',
         fontfile='arial.ttf', tocLevel=2, skipTo1st=False):
+    ext_list=['def_list', 'footnotes', 'tables', 'meta']
+    if '[TOC]' in text:
+    	ext_list.append('toc')
     md = markdown.Markdown(
-            extensions=['def_list', 'footnotes', 'tables', 'toc', 'meta'],
+            extensions=ext_list,
             #extension_configs={'footnotes' : ('PLACE_MARKER','====footnote====')},
             safe_mode="escape",
             output_format="xhtml1"
@@ -45,7 +48,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
     #  1) <p>*</p> --> <p class="blankpara">&#160;</p>
     #  2) quotation mark
     html = html.replace('<p>*</p>', '<p class="blankpara">&#160;</p>')
-    html = html.replace(u'“ ',"&#8220;").replace(u'”',"&#8221;")
+    html = html.replace(u'“ ',"&#8220;").replace(u'”',"&#8221;")    # &ldquo;, &rdquo; are not defined in XHTML
     html = html.replace(u"‘ ","&#8216;").replace(u"’","&#8217;")
     # book info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
