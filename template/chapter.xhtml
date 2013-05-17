@@ -7,7 +7,11 @@
   <link href="target.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
+#if $ch['id']
   <h1 id="$ch['id']">$ch['name']</h1>
+#else
+  <h1>$ch['name']</h1>
+#end if
   $ch['html']
 </body>
 </html>

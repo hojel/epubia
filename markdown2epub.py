@@ -47,9 +47,12 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
     # post-process unofficial markup
     #  1) <p>*</p> --> <p class="blankpara">&#160;</p>
     #  2) quotation mark
+    #       - &ldquo;, &rdquo; are not defined in XHTML
     html = html.replace('<p>*</p>', '<p class="blankpara">&#160;</p>')
-    html = html.replace(u'“ ',"&#8220;").replace(u'”',"&#8221;")    # &ldquo;, &rdquo; are not defined in XHTML
-    html = html.replace(u"‘ ","&#8216;").replace(u"’","&#8217;")
+    html = re.sub(u'“ ?', "&#8220;", html)
+    html = html.replace(u'”',"&#8221;")
+    html = re.sub(u"‘ ?", "&#8216;", html)
+    html = html.replace(u"’","&#8217;")
     # book info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
             'publisher':'', 'publishdate':'', 'summary':'', 'subject':'', 'isbn':'', 'cover_url':''}

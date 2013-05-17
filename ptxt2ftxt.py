@@ -5,8 +5,8 @@
 
 import re
 
-QOpenChr  = u'''“『「<'"'''
-QCloseChr = u'''”』」>'"'''
+QOpenChr  = u'''“‘『「<'"'''
+QCloseChr = u'''”’』」>'"'''
 SEndChr   = u'\.!\?,'
 
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)

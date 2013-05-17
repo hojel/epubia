@@ -25,8 +25,14 @@
 </metadata>
   <manifest>
     <item href="OPS/titlepage.xhtml" id="titlepage" media-type="application/xhtml+xml"/>
+#set $cnt = 0
 #for $ch in $book['chapter']
+#if $ch['id']
     <item href="OPS/$ch['filename']" id="$ch['id']" media-type="application/xhtml+xml"/>
+#else
+#set $cnt += 1
+    <item href="OPS/$ch['filename']" id="__$cnt" media-type="application/xhtml+xml"/>
+#end if
 #end for
     <item href="OPS/generic.css" id="css1" media-type="text/css"/>
     <item href="OPS/target.css" id="css2" media-type="text/css"/>
@@ -47,7 +53,9 @@
 #end if
     <itemref idref="titlepage"/>
 #for $ch in $book['chapter']
+#if $ch['id']
     <itemref idref="$ch['id']"/>
+#end if
 #end for
   </spine>
   <guide>

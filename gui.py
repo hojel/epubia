@@ -240,6 +240,8 @@ class MyFrame(wx.Frame):
                 if not info['author']: del info['author']
                 info['isbn']   = self.grid.table.GetValue(row, 4)
                 if not info['isbn']: del info['isbn']
+                info['cover_url'] = self.grid.table.GetValue(row, 5)
+                if not info['cover_url']: del info['cover_url']
                 info['language'] = 'Korean'
                 atxt = insert_meta(text, info)
 
