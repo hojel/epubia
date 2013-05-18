@@ -21,11 +21,12 @@ default_config = {
             'MaxBrowseLevel': 2,
             'SkipToFirstChapter': False,
             'PreserveUserMeta': False,
+            'TryHiresImage': True,
             }
 boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
             'OutputEPub', 'OutputMarkdown', 'OutputPDF',
             'ReformatText', 'SkipToFirstChapter',
-            'PreserveUserMeta',
+            'PreserveUserMeta', 'TryHiresImage'
           ]
 
 def load(cfgfile):

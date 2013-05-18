@@ -175,16 +175,22 @@ class MyFrame(wx.Frame):
                     if not keepGoing: break
                     rslt = self.scraper.search( title.encode('utf-8') )
                     if rslt:
-                        info = rslt[0]
+                        info = rslt[0]  # first result
                 else:
                     (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % fname)
                     if not keepGoing: break
                     srch = fname
                     rslt = self.scraper.search( srch.encode('utf-8') )
                     if rslt:
-                        info = rslt[0]
+                        info = rslt[0]  # first result
                 if info is None:
                     info = self.scraper.default_value
+                elif self.config['TryHiresImage']:
+                    import scraper.kyobo_scraper
+                    img_url = scraper.kyobo_scraper.book_scraper().get_hires_image(info['isbn'])
+                    if img_url:
+                        print u"change cover_url to %s" % img_url
+                        info['cover_url'] = img_url
                 # copy result
                 if self.scrap[row]['info'] is None:
                     self.scrap[row]['info'] = dict()
@@ -273,7 +279,7 @@ class MyFrame(wx.Frame):
                                 skipTo1st = self.config['SkipToFirstChapter'] )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
-                    open(out_nex+'.txt', 'w').write( atxt.encode('utf-8-sig') )
+                    open(out_nex+'.md.txt', 'w').write( atxt.encode('utf-8-sig') )
                 if self.config['OutputPDF']:
                     from markdown2pdf import markdown2pdf
                     pdffile = out_nex+'.pdf'

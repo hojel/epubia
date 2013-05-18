@@ -37,7 +37,7 @@ class book_scraper:
                     elif e.nodeName == 'author':
                         pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'image':
-                        pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m5')
+                        pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m256')
                     elif e.nodeName == 'publisher':
                         pkt['publisher'] = e.childNodes[0].nodeValue
                     elif e.nodeName == 'pubdate':

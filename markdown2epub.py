@@ -95,7 +95,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             chtm = re.compile('<h3 id="(.*?)">').sub(r'<h3 id="ssec\g<1>">', chtm)
             sections = [{'name':name, 'id':id} for id,name in re.compile('<h2 id="(.*?)">(.*?)</h2>').findall(chtm)]
         filename = 'chapter%d.xhtml' % chcnt
-        if chid == 'footnote':
+        if chid == 'chfootnote':
             filename = 'footnote.xhtml'
         book['chapter'].append( {'name':title,
                                  'id':chid,
@@ -107,6 +107,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
         # register in xref map
         xcmap[chid] = filename
         for xfref in re.compile('id="(fnref_.*?)"').findall(chtm):
+            print "register anchor {0:s}#{1:s}".format(filename, xfref)
             xfmap[xfref] = filename
     # Remove 1st chapter if it has no title
     if skipTo1st and len(book['chapter']) > 1 and book['chapter'][0]['name'] is None:
@@ -127,7 +128,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
         if ch['html'].find('<div class="toc">') >= 0:
             ch['html'] = re.compile('"#(.*?)"').sub(fix_toc_anchor, ch['html'])
         # in Footnote chapter
-        if ch['id'] == 'footnote':
+        if ch['id'] == 'chfootnote':
             ch['html'] = re.compile('"#(fnref_.*?)"').sub(fix_fnref_anchor, ch['html'])
     # generate ePub
     epubgen.epubgen(book, epubfile, target_css=target_css, template_dir=template_dir, src_dir=src_dir,

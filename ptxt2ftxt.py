@@ -98,6 +98,8 @@ def postprocess(txt, pretty_quote):
     txt2 = re.compile(r"([%s%s])\s*\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(r"\1\n\n\2", txt)
     # insert line after quote ends
     txt2 = re.compile(r"([%s])\s*\n(\S)" %QCloseChr).sub(r"\1\n\n\2", txt2)
+    # line starting with '-'
+    txt2 = re.compile(r"(\S)\s*\n-").sub(r"\1\n\n-", txt2)
     return txt2
 
 #----------------------------------------------------------
