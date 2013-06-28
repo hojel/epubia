@@ -33,27 +33,28 @@ blockquote {
     margin-left: 2em;
     margin-right: 1em;
     margin-top: 0.25em;
-  }
+    }
 blockquote p {
     line-height: 1.25em;
     text-indent: 0;
     margin-bottom: 0;
     margin-top: 0;
-  }
+    }
 pre {
     display: block;
     white-space: pre-wrap;
+    text-indent: 0;
     line-height: 1.2em;
     margin-bottom: 0.25em;
     margin-left: 2em;
     margin-right: 1em;
     margin-top: 0.25em;
-  }
-p.blankpage {
+    }
+p.blankpara {
     line-height: 0.8em;
     margin-top: 0;
     margin-bottom: 0;
-}
+    }
 /* title page*/
 div.titlepage {
     display: block;

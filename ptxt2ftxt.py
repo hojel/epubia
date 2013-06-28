@@ -5,9 +5,10 @@
 
 import re
 
-QOpenChr  = u'''“‘『「<'"'''
-QCloseChr = u'''”’』」>'"'''
-SEndChr   = u'\.!\?,'
+QOpenChr  = u'''"'“‘『「<'''
+QCloseChr = u'''"'”’』」>'''
+SStartChr = u'-=#ㅡ'
+SEndChr   = u'\.!\?,='
 
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
 PARAEND_PTN = re.compile(r'''([%s%s])\s*$''' %(SEndChr,QCloseChr),re.M|re.U)
@@ -49,9 +50,6 @@ def preprocess(txt, startline=1):
     #txt = re.compile(r'[ \r]*$',re.M).sub('', txt)
     # clean empty line
     txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
-    # filter special character
-    #txt = txt.replace(u'“ ','"').replace(u'”','"')
-    #txt = txt.replace(u"‘ ","'").replace(u"’","'")
     return txt
 
 def analyze_paragraph(txt):
@@ -95,11 +93,11 @@ def format_paragraph(txt, pfmt_type=1):
 
 def postprocess(txt, pretty_quote):
     # insert line before quote start
-    txt2 = re.compile(r"([%s%s])\s*\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(r"\1\n\n\2", txt)
+    txt2 = re.compile(ur"([%s%s])\s*\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(ur"\1\n\n\2", txt)
     # insert line after quote ends
-    txt2 = re.compile(r"([%s])\s*\n(\S)" %QCloseChr).sub(r"\1\n\n\2", txt2)
-    # line starting with '-'
-    txt2 = re.compile(r"(\S)\s*\n-").sub(r"\1\n\n-", txt2)
+    txt2 = re.compile(ur"([%s])\s*\n(\S)" %QCloseChr).sub(ur"\1\n\n\2", txt2)
+    # line starting with special character
+    txt2 = re.compile(ur"(\S)\s*\n([%s])" %SStartChr).sub(ur"\1\n\n\2", txt2)
     return txt2
 
 #----------------------------------------------------------
@@ -121,9 +119,9 @@ def correct_word_by_naver(txt):
     ll1 = []
     for l in txt.split('\n'):
     	ll1.append(l)
-    	ll1.append('')
+    	ll1.append('')      # line doubling
     txt1 = '\n'.join(ll1)
-    txt2 = re.compile(r'(\S+)\n\n(\S+) *\n{0,2}').sub(r'\n\1 \2\n', txt1)
+    txt2 = re.compile(r'(\S*[^ \n%s%s]) ?\n\n([^ \n%s%s]\S*) *\n{0,2}' %(SEndChr,QCloseChr,SStartChr,QOpenChr)).sub(r'\n\1 \2\n', txt1)
     ll2 = txt2.split('\n')
     if len(ll2) % 2:
     	txt2 += '\n'
@@ -145,11 +143,7 @@ def correct_word_by_naver(txt):
 def correct_keyword(txt):
     # Disable some markdown markers for better output
     #    1) horizontal line drawing by '* * *'
-    #    2) list starting with '-' 
-    #         use alternative way starting with '*' 
     txt = re.compile('(\* *\* *\*)',re.M|re.U).sub(r'\t\g<1>', txt)
-    txt = re.compile('^( *)-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt)
-    #txt = re.compile('^ *--- *$',re.M).sub(r'- - -', txt)
     return txt
 
 #--------------------------------------

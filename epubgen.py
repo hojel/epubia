@@ -173,6 +173,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
 
     # NCX
     ncx_tmpl = open(os.path.join(template_dir, 'toc.ncx'),'r').read().decode('utf-8')
+    print "ePUB toc level: %d" %geninfo['toclevel']
     ncx = str( Template(ncx_tmpl, searchList=[ {'book':book, 'gen':geninfo} ]) )
     epub.saveData(ncx, '', 'toc.ncx')
 

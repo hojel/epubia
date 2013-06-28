@@ -238,7 +238,7 @@ class MyFrame(wx.Frame):
                     correct_word_break = self.config['CorrectWordBreak']
                     if not correct_word_break:
                         correct_word_break = None
-                    text = txtformat.clean(text, correct_word_break=correct_word_break)
+                    text = txtformat.clean(text, correct_word_break=correct_word_break, guess_chapter=self.config['GuessChapter'])
                 info = self.scrap[row]['info']
                 info['title']  = self.grid.table.GetValue(row, 2)
                 if not info['title']: del info['title']
@@ -262,6 +262,8 @@ class MyFrame(wx.Frame):
                     filebase = info['title']
                 else:
                     filebase = os.path.splitext( os.path.basename(txtfile) )[0]
+                    if filebase.endswith('.md'):    # markdown notifier
+                        filebase = filebase[:-3]
                 if self.config['UseDestDir']:
                     out_nex = os.path.join(self.config['DestDir'], filebase)
                 else:
@@ -276,7 +278,8 @@ class MyFrame(wx.Frame):
                                 src_dir = os.path.dirname(txtfile),
                                 fontfile=self.config['FontFile'],
                                 tocLevel=self.config['MaxBrowseLevel'],
-                                skipTo1st = self.config['SkipToFirstChapter'] )
+                                skipTo1st = self.config['SkipToFirstChapter'],
+                                splitLargeText = self.config['SplitLargeText'] )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
                     open(out_nex+'.md.txt', 'w').write( atxt.encode('utf-8-sig') )

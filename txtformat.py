@@ -37,12 +37,12 @@ def load(fname):
         return text[1:]
     return text
 
-def clean(txt, startline=1, pretty_quote=True, correct_word_break=None):
+def clean(txt, startline=1, pretty_quote=True, correct_word_break=None, guess_chapter=True):
     from ptxt2ftxt import ptxt2ftxt, ftxtclean
     from ftxt2markdown import ftxt2markdown
     txt = ptxt2ftxt(txt, startline)
     txt = ftxtclean(txt, pretty_quote, correct_word_break)
-    txt = ftxt2markdown(txt)
+    txt = ftxt2markdown(txt, guess_chapter)
     return txt
 
 #--------------------------------------

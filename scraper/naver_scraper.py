@@ -23,10 +23,14 @@ class book_scraper:
     def search(self,qstr):
         return self.parse( urllib.urlopen(self.srch_url.format(self.key, urllib.quote_plus(qstr))).read() )
     def fetch(self,isbn):
-        return self.parse( urllib.urlopen(self.isbn_url.format(self.key, isbn)).read() )[0]
+        result = self.parse( urllib.urlopen(self.isbn_url.format(self.key, isbn)).read() )
+        return result[0] if result else None
     def parse(self,xml):
         info = []
         dom = parseString(xml)
+        if dom.childNodes[0].nodeName == 'error':
+            print xml
+            return None
         assert dom.childNodes[0].childNodes[0].nodeName == 'channel'
         for node in dom.childNodes[0].childNodes[0].childNodes:
             if node.nodeName == 'item':
@@ -35,7 +39,8 @@ class book_scraper:
                     if e.nodeName == 'title':
                         pkt['title'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'author':
-                        pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
+                        if e.childNodes:
+                            pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'image' and e.childNodes:
                         pkt['cover_url'] = e.childNodes[0].nodeValue.replace('=m1','=m256')
                     elif e.nodeName == 'publisher':

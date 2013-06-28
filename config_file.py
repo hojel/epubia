@@ -18,16 +18,20 @@ default_config = {
             'UseTitleInOutputName': False,
             'ReformatText' : True,
             'CorrectWordBreak' : '',
+            'GuessChapter' : True,
             'MaxBrowseLevel': 2,
             'SkipToFirstChapter': False,
+            'SplitLargeText': True,
             'PreserveUserMeta': False,
             'TryHiresImage': True,
             }
 boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
             'OutputEPub', 'OutputMarkdown', 'OutputPDF',
-            'ReformatText', 'SkipToFirstChapter',
+            'ReformatText', 'GuessChapter',
+            'SkipToFirstChapter', 'SplitLargeText', 
             'PreserveUserMeta', 'TryHiresImage'
           ]
+intkey  = [ 'MaxBrowseLevel' ]
 
 def load(cfgfile):
     config = default_config
@@ -40,6 +44,8 @@ def load(cfgfile):
                 value = item.firstChild.data
                 if key in boolkey:
                     value = bool(int(value))
+                elif key in intkey:
+                    value = int(value)
             else:
                 value = ''
             config[ key ] = value

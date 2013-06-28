@@ -11,30 +11,33 @@
 
 import re
 
-CHAP_PTN1 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}[ \t]*\n')
-CHAP_PTN2 = re.compile(r'\n#[ \t]*')
-CHAP_PTN3 = re.compile(ur'^\s*(제\s*\d+\s*장[ \.].{2,})$',re.M)
-SECT_PTN1 = re.compile(r'\n##[ \t]*')
-SECT_PTN2 = re.compile(r'^\s*([\dIVXivx]+\.?)\s*$',re.M)
+PTN_CHAP1 = re.compile(r'^\s*(\d+)\s*$',re.M)
+PTN_CHAP2 = re.compile(ur'^\s*(제\s*\d+\s*장(?:\..*|\s*))$',re.M)
+PTN_CHAP3 = re.compile(ur'^\s*(第\s*[一二三四五六七八九十]+\s*章)',re.M)
+PTN_CHAP4 = re.compile(r'^\s*(chapter\s+\d+\.?|prologue|epilogue)\s*$',re.M|re.I)
 
-def ftxt2markdown(txt):
-    #txt = find_header_from_toc(txt)
-    txt2 = guess_header(txt)
+def ftxt2markdown(txt, guessChapter=True):
+    if guessChapter:
+    	txt = guess_header(txt)
+        #txt = find_header_from_toc(txt)
+    # filter unwanted expression
+    txt2 = re.compile('^( {0,3})-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt)
     return txt2
 
 #--------------------------------------
+PTN_MD_CH1 = re.compile(r'^#($|[^#])',re.M)
+PTN_MD_CH2 = re.compile(r'\n\n([^\n]+)\n[ ]*={5,}[ \t]*\n')
+
 def guess_header(txt):
     # chapter
     numch = 0
-    numch += len(CHAP_PTN1.findall(txt))
-    numch += len(CHAP_PTN2.findall(txt))
-    if numch < 1:
-        txt = CHAP_PTN3.sub(r'\n# \1\n\n', txt)
-        # section
-        numsec = 0
-        numsec += len(SECT_PTN1.findall(txt))
-        if numsec < 1:
-            txt = SECT_PTN2.sub(r'\n## \1\n\n', txt)
+    numch += len(PTN_MD_CH1.findall(txt))
+    numch += len(PTN_MD_CH2.findall(txt))
+    if numch == 0:
+        txt = PTN_CHAP1.sub(r'\n# \g<1>\n', txt)
+        txt = PTN_CHAP2.sub(r'\n# \g<1>\n', txt)
+        txt = PTN_CHAP3.sub(r'\n# \g<1>', txt)
+        txt = PTN_CHAP4.sub(r'\n# \g<1>\n', txt)
     return txt
 
 #--------------------------------------
