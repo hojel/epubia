@@ -19,14 +19,14 @@ class book_scraper:
 
     def __init__(self):
         pass
-    def search(self,qstr):
-        return self.parse( urllib.urlopen(self.srch_url.format(urllib.quote_plus(qstr), self.key)).read() )
+    def search(self,qstr,maxresult=None):
+        return self._parse( urllib.urlopen(self.srch_url.format(urllib.quote_plus(qstr.encode('utf-8')), self.key)).read() )
     def fetch(self,isbn):
-        isbn = self.parse( urllib.urlopen(self.isbn_url.format(isbn, self.key)).read() )
+        isbn = self._parse( urllib.urlopen(self.isbn_url.format(isbn, self.key)).read() )
         if isbn:
             return isbn[0]
         return None
-    def parse(self,xml):
+    def _parse(self,xml):
         info = []
         dom = parseString(xml)
         if dom.childNodes[0].nodeName == 'apierror':
@@ -39,10 +39,10 @@ class book_scraper:
                 for e in node.childNodes:
                     if e.nodeName == 'title':
                         if e.childNodes:
-                            pkt['title'] = self.cleanup(e.childNodes[0].nodeValue)
+                            pkt['title'] = self._cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'author':
                         if e.childNodes:
-                            pkt['author'] = self.cleanup(e.childNodes[0].nodeValue)
+                            pkt['author'] = self._cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'cover_s_url':
                         if e.childNodes:
                             pkt['cover_url'] = e.childNodes[0].nodeValue.replace('R72x100','image')
@@ -58,19 +58,19 @@ class book_scraper:
                             pkt['subject'] = e.childNodes[0].nodeValue
                     elif e.nodeName == 'description':
                         if e.childNodes:
-                            pkt['description'] = self.cleanup(e.childNodes[0].nodeValue)
+                            pkt['description'] = self._cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'isbn':  # ISBN-10
                         if e.childNodes:
-                            pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue)
+                            pkt['isbn'] = self._cleanup(e.childNodes[0].nodeValue)
                     elif e.nodeName == 'barcode':  # ISBN-13
                         if e.childNodes:
-                            pkt['isbn'] = self.cleanup(e.childNodes[0].nodeValue)[3:]
+                            pkt['isbn'] = self._cleanup(e.childNodes[0].nodeValue)[3:]
                 newimg = self.get_yes24_cover(pkt['isbn'])
                 if newimg:
                     pkt['cover_url'] = newimg
                 info.append( pkt )
         return info
-    def cleanup(self,str):
+    def _cleanup(self,str):
         return MARKUP_PTN.sub('',str).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
     # cover image from other sites
     def get_kyobo_cover(self,isbn):
@@ -86,12 +86,12 @@ class book_scraper:
         return None
 
 if __name__ == "__main__":
-    info = book_scraper().search( "은하영웅전설 1" )[0]
+    info = book_scraper().search( u"은하영웅전설 1" )[0]
     print info['title']
     print info['author']
     print info['cover_url']
 
-    info = book_scraper().search( "[이광수]무정" )[0]
+    info = book_scraper().search( u"[이광수]무정" )[0]
     print info['title']
     print info['author']
     print info['cover_url']

@@ -9,6 +9,9 @@ import sys
 __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
+import re
+PTN_TITLE = re.compile('(?P<author>[^\[]+)[\]-](?P<title>.+)')
+
 #--------------------------------------------------
 class MyFrame(wx.Frame):
     """ We simply derive a new class of Frame. """
@@ -117,7 +120,7 @@ class MyFrame(wx.Frame):
         # add new row
         self.grid.table.SetValue( newrow, 0, True )
         self.grid.table.SetValue( newrow, 1, fname )
-        # try to fetch directive inside
+        # 1) try to fetch directive inside
         text = txtformat.load( os.path.join(self.dirname,fname) )
         info = extract_meta(text)
         if 'title' in info:
@@ -128,6 +131,17 @@ class MyFrame(wx.Frame):
             self.grid.table.SetValue( newrow, 4, info['isbn'] )
         if 'cover_url' in info:
             self.grid.table.SetValue( newrow, 5, info['cover_url'] )
+        # 2) [fallback] guess title & author from filename
+        if not 'title' in info and not 'author' in info:
+            fname2 = os.path.splitext(os.path.basename(fname))[0]
+            query = PTN_TITLE.search(fname2)
+            if query:
+                title = query.group('title').strip()
+                author = query.group('author').strip()
+                if title:
+                    info['title'] = title.replace('_',' ')
+                if author:
+                    info['author'] = author.replace('_',' ')
         self.scrap[newrow]['info'] = info
 
     def runRemove(self, evt):
@@ -170,17 +184,11 @@ class MyFrame(wx.Frame):
                     (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % isbn)
                     if not keepGoing: break
                     info = self.scraper.fetch(isbn)
-                elif title:
-                    (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % title)
-                    if not keepGoing: break
-                    rslt = self.scraper.search( title.encode('utf-8') )
-                    if rslt:
-                        info = rslt[0]  # first result
                 else:
-                    (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % fname)
+                    keywd = title if title else fname.replace('_',' ')
+                    (keepGoing, skip) = dlg.Update(cnt, u"%s 검색중" % keywd)
                     if not keepGoing: break
-                    srch = fname
-                    rslt = self.scraper.search( srch.encode('utf-8') )
+                    rslt = self.scraper.search( keywd, maxresult=1 )
                     if rslt:
                         info = rslt[0]  # first result
                 if info is None:
@@ -238,7 +246,10 @@ class MyFrame(wx.Frame):
                     correct_word_break = self.config['CorrectWordBreak']
                     if not correct_word_break:
                         correct_word_break = None
-                    text = txtformat.clean(text, correct_word_break=correct_word_break, guess_chapter=self.config['GuessChapter'])
+                    text = txtformat.clean(text,
+                            correct_word_break=correct_word_break,
+                            guess_chapter=self.config['GuessChapter'],
+                            guess_parasep=self.config['GuessParaSep'])
                 info = self.scrap[row]['info']
                 info['title']  = self.grid.table.GetValue(row, 2)
                 if not info['title']: del info['title']
@@ -279,7 +290,8 @@ class MyFrame(wx.Frame):
                                 fontfile=self.config['FontFile'],
                                 tocLevel=self.config['MaxBrowseLevel'],
                                 skipTo1st = self.config['SkipToFirstChapter'],
-                                splitLargeText = self.config['SplitLargeText'] )
+                                splitLargeText = self.config['SplitLargeText'],
+                                graphicSeparator=self.config['GraphicSeparator'])
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
                     open(out_nex+'.md.txt', 'w').write( atxt.encode('utf-8-sig') )
@@ -347,10 +359,16 @@ class MyFrame(wx.Frame):
             import scraper.naver_scraper
             self.scraper = scraper.naver_scraper.book_scraper()
             self.scraper.key = self.config['NaverAPIKey']
-        else:
+            self.config['TryHiresImage'] = True
+        elif self.config['Scraper'] == 'Daum':
             import scraper.daum_scraper
             self.scraper = scraper.daum_scraper.book_scraper()
             self.scraper.key = self.config['DaumAPIKey']
+            self.config['TryHiresImage'] = True
+        else:
+            import scraper.aladin_scraper
+            self.scraper = scraper.aladin_scraper.book_scraper()
+            self.config['TryHiresImage'] = False
 
 #--------------------------------------------------
 class MyDataTable(gridlib.PyGridTableBase):
@@ -537,12 +555,15 @@ class MyOption(wx.Dialog):
         grid2 = wx.FlexGridSizer(0, 2, 0, 0)
 
         self.scrap_ctrls = []
-        radio1 = wx.RadioButton( self, wx.ID_ANY, "Daum", style=wx.RB_GROUP )
+        radio1 = wx.RadioButton( self, wx.ID_ANY, "Aladin", style=wx.RB_GROUP )
         radio2 = wx.RadioButton( self, wx.ID_ANY, "Naver" )
-        text1  = wx.TextCtrl( self, wx.ID_ANY, config['DaumAPIKey'] )
+        radio3 = wx.RadioButton( self, wx.ID_ANY, "Daum" )
+        text1  = wx.TextCtrl( self, wx.ID_ANY, '' )
         text2  = wx.TextCtrl( self, wx.ID_ANY, config['NaverAPIKey'] )
+        text3  = wx.TextCtrl( self, wx.ID_ANY, config['DaumAPIKey'] )
         self.scrap_ctrls.append( (radio1, text1) )
         self.scrap_ctrls.append( (radio2, text2) )
+        self.scrap_ctrls.append( (radio3, text3) )
 
         for radio, text in self.scrap_ctrls:
             if radio.GetLabel() == config['Scraper']:
@@ -553,6 +574,7 @@ class MyOption(wx.Dialog):
         for radio, text in self.scrap_ctrls:
             grid2.Add( radio, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
             grid2.Add( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            text.Hide()     # not to allow user to modify key
 
         box2.Add( grid2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
         mvs.Add( box2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
@@ -604,7 +626,6 @@ class MyOption(wx.Dialog):
         self.SetSizer( sizer )
         sizer.Fit( self )
 
-        # default selection
         for radio, text in self.scrap_ctrls:
             self.Bind( wx.EVT_RADIOBUTTON, self.OnScraperSelect, radio )
 
@@ -623,9 +644,10 @@ class MyOption(wx.Dialog):
         #
         for radio, text in self.scrap_ctrls:
             srvname = radio.GetLabel()
-            config['%sAPIKey' % srvname] = text.GetLabel()
             if radio.GetValue():
                 config['Scraper'] = srvname
+            if srvname in ['Naver', 'Daum']:
+                config['%sAPIKey' % srvname] = text.GetLabel()
         #
         sel = self.wordbreak_cb.GetCurrentSelection()
         config['CorrectWordBreak'] = (['', 'pattern', 'naver_autospacing'])[sel]

@@ -135,10 +135,16 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
     # images from chapters
     img_list = []
     imgcnt = 0
+    useSepImgFile = False
     for ch in book['chapter']:
         # extract images
         html = ch['html']
         for url in IMG_PTN.findall(html):
+            if url == "@@@SEPARATOR_IMG@@@":
+                if not useSepImgFile:
+                    html = html.replace("@@@SEPARATOR_IMG@@@", "image/separator.png")
+                    useSepImgFile = True
+                continue
             imgcnt += 1
             buf = StringIO()
             fmt = copy_image( url, buf, basedir=src_dir, maxsize=IMG_SIZE)
@@ -151,6 +157,12 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
             else:
                 print >> sys.stderr, "ERROR: can not read %s" % url
         ch['html'] = html
+    # copy separator.png if used
+    if useSepImgFile:
+        buf = StringIO()
+        fmt = copy_image( "template/separator.png", buf )
+        epub.addData(buf.getvalue(), OPS_DIR+"/image", "separator.png")
+        img_list.append( ("image/separator.png", "png") )
     book['image'] = img_list
 
     # chapter files

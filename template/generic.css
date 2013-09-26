@@ -9,19 +9,11 @@ body {
     page-break-before: always;
     orphans: 0;
     }
-p {
-    line-height: 1.4em;
-    text-indent: 1.2em;
-    margin-bottom: 0;
-    margin-top: 0em;
-}
 h1 {
     display: block;
-    font-size: large;
     }
 h2 {
     display: block;
-    font-size: medium;
     }
 img {
     text-align: center;

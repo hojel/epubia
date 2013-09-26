@@ -15,9 +15,13 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     md = markdown.Markdown(extensions=['meta','footnotes'])
     html = md.convert(text)
     # post-process unofficial markup
-    #  1) <p>- - -</p> --> <p class="blankpara">&#160;</p>
+    #  1) <p>*</p> --> <p class="blankpara">&#160;</p>
     #  2) quotation mark
-    html = html.replace('<p>- - -</p>', '<p class="blankpara">&#160;</p>')
+    html = html.replace('<p>*</p>', '<p class="blankpara">&#160;</p>')
+    html = re.sub(u'“ ?', "&#8220;", html)
+    html = html.replace(u'”',"&#8221;")
+    html = re.sub(u"‘ ?", "&#8216;", html)
+    html = html.replace(u"’","&#8217;")
     if debug:
         open('test.html','w').write(html.encode('utf-8'))
     htmline = []
@@ -43,7 +47,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
         title = md.Meta['title'][0].replace(', ','<br />')
     if 'author' in md.Meta:
         author = md.Meta['author'][0].replace(', ','<br />')
-    cover_tmpl = open(os.path.join('template','pdf_coverpage.html'), 'r').read()
+    cover_tmpl = open(os.path.join('template','pdf_coverpage.html'), 'r').read().decode('utf-8')
     coverpg_htm = str( Template(cover_tmpl, searchList=[ {'cover_url':cover_file,'title':title,'author':author} ]) )
     htmline.append( unicode(coverpg_htm,'utf-8') )
     #-- Body
@@ -58,7 +62,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     html = html.replace('<h1 />','<h1></h1>')
     htmline.append(html)
     #-- PDF generation
-    css_tmpl = open(os.path.join('template',cssfile), 'r').read()
+    css_tmpl = open(os.path.join('template',cssfile), 'r').read().decode('utf-8')
     target_css = str( Template(css_tmpl, searchList=[ {'font':'fonts/'+fontfile} ]) )
     fp = file(pdffile,'wb')
     pdf = pisa.pisaDocument(

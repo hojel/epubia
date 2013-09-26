@@ -40,7 +40,7 @@ ptn_fnref = re.compile('id="(fnref_.*?)"')
 
 def markdown2epub(text, epubfile, target_css='target/None.css',
         template_dir='./template', src_dir='.',
-        fontfile='arial.ttf', tocLevel=2, skipTo1st=False, splitLargeText=True):
+        fontfile='arial.ttf', tocLevel=2, skipTo1st=False, splitLargeText=True, graphicSeparator=True):
     ext_list=['def_list', 'footnotes', 'tables', 'meta']
     if '[TOC]' in text:
         ext_list.append('toc')
@@ -61,6 +61,8 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
     html = html.replace(u'”',"&#8221;")
     html = re.sub(u"‘ ?", "&#8216;", html)
     html = html.replace(u"’","&#8217;")
+    if graphicSeparator:
+        html = html.replace('<p>* * *</p>', '<p class="blankpara"><img src="@@@SEPARATOR_IMG@@@" /></p>')
     # book info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
             'publisher':'', 'publishdate':'', 'summary':'', 'subject':'', 'isbn':'', 'cover_url':''}

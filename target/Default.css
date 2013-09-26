@@ -1,13 +1,22 @@
-/* Use only regular font. i.e. exclude monospace/italic fonts. */
-pre {
-font-family: sans-serif;
+h1 {
+    font-size: large;
+    text-align: center;
 }
 
-code {
-font-family: sans-serif;
+h2 {
+    font-size: medium;
+    font-weight: bold;
 }
 
-em {
-font-style: normal;
-font-weight: bold;
+p {
+    line-height: 1.4em;
+    /* indent */
+    text-indent: 1.2em;
+    margin-bottom: 0;
+    margin-top: 0;
+    /* no indent
+    text-indent: 0;
+    margin-bottom: 0.3em;
+    margin-top: 0.3em;
+    */
 }

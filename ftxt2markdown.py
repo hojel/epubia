@@ -16,12 +16,19 @@ PTN_CHAP2 = re.compile(ur'^\s*(제\s*\d+\s*장(?:\..*|\s*))$',re.M)
 PTN_CHAP3 = re.compile(ur'^\s*(第\s*[一二三四五六七八九十]+\s*章)',re.M)
 PTN_CHAP4 = re.compile(r'^\s*(chapter\s+\d+\.?|prologue|epilogue)\s*$',re.M|re.I)
 
-def ftxt2markdown(txt, guessChapter=True):
+def ftxt2markdown(txt, guessChapter=True, guessParaSep=False):
+    # (1) guess chapter
     if guessChapter:
+    	print "Guess Chapter"
     	txt = guess_header(txt)
         #txt = find_header_from_toc(txt)
-    # filter unwanted expression
-    txt2 = re.compile('^( {0,3})-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt)
+    # (2) consider sequence of empty lines as empty paragraph
+    if guessParaSep:
+    	print "Guess Paragraph Separation"
+        txt = re.compile('\n{6,}([^#\*\t\n!])').sub(r'\n\n*\n\n\g<1>', txt)
+    txt2 = re.compile('\n{3,}').sub(r'\n\n', txt)
+    # (3) filter unwanted markdown syntax
+    txt2 = re.compile('^( {0,3})-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt2)
     return txt2
 
 #--------------------------------------

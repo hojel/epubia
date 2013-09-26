@@ -4,11 +4,11 @@
 import os
 
 default_config = {
-            'Scraper' : 'Daum',
-            'DaumAPIKey': 'DAUM_SEARCH_DEMO_APIKEY',
-            'NaverAPIKey': '',
+            'Scraper' : 'Aladin',
+            'DaumAPIKey': '9125fb6a1c2e7100009b4ad61d6089037386dba6',
+            'NaverAPIKey': '6da7207e79464e4c95937b235978d425',
             #'GenericCSS': 'generic.css',
-            'TargetCSS': 'Embed',
+            'TargetCSS': 'Default',
             'UseDestDir': False,
             'DestDir': os.curdir,
             'FontFile': 'SeoulHangang.ttf',
@@ -19,19 +19,14 @@ default_config = {
             'ReformatText' : True,
             'CorrectWordBreak' : '',
             'GuessChapter' : True,
+            'GuessParaSep' : True,
             'MaxBrowseLevel': 2,
             'SkipToFirstChapter': False,
             'SplitLargeText': True,
             'PreserveUserMeta': False,
-            'TryHiresImage': True,
+            'TryHiresImage': False,
+            'GraphicSeparator' : False,
             }
-boolkey = [ 'UseDestDir', 'UseTitleInOutputName',
-            'OutputEPub', 'OutputMarkdown', 'OutputPDF',
-            'ReformatText', 'GuessChapter',
-            'SkipToFirstChapter', 'SplitLargeText', 
-            'PreserveUserMeta', 'TryHiresImage'
-          ]
-intkey  = [ 'MaxBrowseLevel' ]
 
 def load(cfgfile):
     config = default_config
@@ -42,9 +37,9 @@ def load(cfgfile):
             key = item.getAttribute('name')
             if item.hasChildNodes():
                 value = item.firstChild.data
-                if key in boolkey:
-                    value = bool(int(value))
-                elif key in intkey:
+                if value.lower() in ['true', 'false']:
+                    value = bool(value.lower() == 'true')
+                elif value.isdigit():
                     value = int(value)
             else:
                 value = ''
@@ -56,9 +51,12 @@ def load(cfgfile):
 def save(cfgfile, config):
     lines = []
     lines.append('<configuration>')
-    for key, value in config.items():
-        if key in boolkey:
-            lines.append('  <property name="%s">%d</property>' % (key, int(value)) )
+    for key in sorted(config):
+        if 'APIKey' in key:
+        	continue        # hide API Key
+        value = config[key]
+        if isinstance(value, bool):
+            lines.append('  <property name="%s">%s</property>' % (key, str(value).lower()) )
         else:
             lines.append('  <property name="%s">%s</property>' % (key, str(value)) )
     lines.append('</configuration>')

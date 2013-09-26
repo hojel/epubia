@@ -8,7 +8,7 @@ import re
 QOpenChr  = u'''"'“‘『「<'''
 QCloseChr = u'''"'”’』」>'''
 SStartChr = u'-=#ㅡ'
-SEndChr   = u'\.!\?,='
+SEndChr   = u'\.!\?,，='
 
 EMPTYLINE_PTN = re.compile(r'^\s*$',re.M|re.U)
 PARAEND_PTN = re.compile(r'''([%s%s])\s*$''' %(SEndChr,QCloseChr),re.M|re.U)
@@ -23,7 +23,7 @@ def ptxt2ftxt(txt, startline=1, pretty_quote=False):
     print "guessed format: %d" %pfmt
     # paragraph
     txt2 = format_paragraph(txt, pfmt)
-    # preprocess
+    # postprocess
     txt3 = postprocess(txt2, pretty_quote)
     return txt3
 
@@ -49,7 +49,8 @@ def preprocess(txt, startline=1):
     # --> space in tail can be used as line break directive
     #txt = re.compile(r'[ \r]*$',re.M).sub('', txt)
     # clean empty line
-    txt = re.compile(r'^\s*$',re.M|re.U).sub('', txt)
+    # *NOTE* possibile error with preformatted text
+    txt = re.compile(r'^ [ \t]*$',re.M|re.U).sub('', txt)
     return txt
 
 def analyze_paragraph(txt):
@@ -96,6 +97,7 @@ def postprocess(txt, pretty_quote):
     txt2 = re.compile(ur"([%s%s])\s*\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(ur"\1\n\n\2", txt)
     # insert line after quote ends
     txt2 = re.compile(ur"([%s])\s*\n(\S)" %QCloseChr).sub(ur"\1\n\n\2", txt2)
+    #txt2 = re.compile(ur"\n([^%s].*, *[%s].*[%s])\n\n" %(QOpenChr, QOpenChr, QCloseChr)).sub(ur"\1\n", txt2)
     # line starting with special character
     txt2 = re.compile(ur"(\S)\s*\n([%s])" %SStartChr).sub(ur"\1\n\n\2", txt2)
     return txt2
