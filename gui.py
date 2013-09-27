@@ -291,7 +291,8 @@ class MyFrame(wx.Frame):
                                 tocLevel=self.config['MaxBrowseLevel'],
                                 skipTo1st = self.config['SkipToFirstChapter'],
                                 splitLargeText = self.config['SplitLargeText'],
-                                graphicSeparator=self.config['GraphicSeparator'])
+                                graphicSeparator=self.config['GraphicSeparator'],
+                                maxImageSize=(self.config['MaxImageWidth'], self.config['MaxImageHeight']) )
                     print u"%s is generated" % epubfile
                 if self.config['OutputMarkdown']:
                     open(out_nex+'.md.txt', 'w').write( atxt.encode('utf-8-sig') )

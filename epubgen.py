@@ -7,7 +7,6 @@ __program__ = sys.modules['__main__'].__program__
 __version__ = sys.modules['__main__'].__version__
 
 OPS_DIR  = 'OPS'
-IMG_SIZE = (600,800)
 
 import re
 IMG_PTN = re.compile('<img [^>]*src="(.*?)"',re.M)
@@ -97,7 +96,8 @@ def copy_image(url, fp, basedir='.', maxsize=None, bw=False):
     return fmt
 
 def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
-            fontfile='arial.ttf', toclevel=2):
+            fontfile='arial.ttf', toclevel=2,
+            maximgsize=None):
     import time
     import uuid
     geninfo = {'name':__program__,
@@ -147,7 +147,7 @@ def epubgen(book, outfile, target_css, template_dir='./template', src_dir='.',
                 continue
             imgcnt += 1
             buf = StringIO()
-            fmt = copy_image( url, buf, basedir=src_dir, maxsize=IMG_SIZE)
+            fmt = copy_image( url, buf, basedir=src_dir, maxsize=maximgsize)
             if fmt:
                 imgdata = buf.getvalue()
                 fname = "image%d.%s" % (imgcnt, fmt)
@@ -205,5 +205,5 @@ if __name__ == "__main__":
 
     htm = open(mainhtm, 'r').read()
     print htm
-    epubgen(book, outname, target_css=tgtcss)
+    epubgen(book, outname, target_css=tgtcss, maximgsize=(600,800))
 # vim:ts=4:sw=4:et

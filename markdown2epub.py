@@ -40,7 +40,9 @@ ptn_fnref = re.compile('id="(fnref_.*?)"')
 
 def markdown2epub(text, epubfile, target_css='target/None.css',
         template_dir='./template', src_dir='.',
-        fontfile='arial.ttf', tocLevel=2, skipTo1st=False, splitLargeText=True, graphicSeparator=True):
+        fontfile='arial.ttf', tocLevel=2, skipTo1st=False,
+        splitLargeText=True, graphicSeparator=True,
+        maxImageSize=None):
     ext_list=['def_list', 'footnotes', 'tables', 'meta']
     if '[TOC]' in text:
         ext_list.append('toc')
@@ -139,7 +141,8 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
             ch['html'] = re.compile('"#(fnref_.*?)"').sub(fix_fnref_anchor, ch['html'])
     # generate ePub
     epubgen.epubgen(book, epubfile, target_css=target_css, template_dir=template_dir, src_dir=src_dir,
-                    fontfile=fontfile, toclevel=tocLevel)
+                    fontfile=fontfile, toclevel=tocLevel,
+                    maximgsize=maxImageSize)
 
 def match_add_h2_id(match):
     global seccnt

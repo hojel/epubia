@@ -26,6 +26,8 @@ default_config = {
             'PreserveUserMeta': False,
             'TryHiresImage': False,
             'GraphicSeparator' : False,
+            'MaxImageWidth' : 600,
+            'MaxImageHeight' : 800,
             }
 
 def load(cfgfile):
