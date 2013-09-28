@@ -501,7 +501,15 @@ class FileDropTarget(wx.FileDropTarget):
 
     def OnDropFiles(self, x, y, filenames):
         for fname in filenames:
-            self.obj.loadFile(fname)
+            ext = os.path.splitext(fname)[1].lower()
+            if ext in ['.txt', '.md']:
+                self.obj.loadFile(fname)
+            elif ext in ['.jpg', '.jpeg', '.png', '.gif']:
+                for row, item in enumerate(self.obj.scrap):
+                    item['info']['cover_url'] = fname
+                    self.obj.grid.table.SetValue( row, 5, fname )
+            else:
+                print >> sys.stderr, u"ERROR: Unknown format, "+fname
 
 #--------------------------------------------------
 class MyOption(wx.Dialog):
@@ -551,7 +559,7 @@ class MyOption(wx.Dialog):
         mvs.Add( box1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
 
         # Scraper Selection
-        box2_title = wx.StaticBox(self, wx.ID_ANY, "Scraper / Key")
+        box2_title = wx.StaticBox(self, wx.ID_ANY, u"책정보 사이트")
         box2  = wx.StaticBoxSizer(box2_title, wx.VERTICAL)
         grid2 = wx.FlexGridSizer(0, 2, 0, 0)
 
