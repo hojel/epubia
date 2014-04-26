@@ -23,7 +23,7 @@ def fix_toc_anchor(match):
             return '"{0:s}"'.format(xcfilename)
         else:
             # section (using previous set xcfilename)
-            return '"{0:s}#sec{1:s}"'.format(xcfilename, id)
+            return '"{0:s}#sec{1:s}"'.format(xcfilename, match.group(1))
     xcfilename = ''
     return '""'
 
