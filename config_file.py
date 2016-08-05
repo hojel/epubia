@@ -55,7 +55,7 @@ def save(cfgfile, config):
     lines.append('<configuration>')
     for key in sorted(config):
         if 'APIKey' in key:
-        	continue        # hide API Key
+            continue        # hide API Key
         value = config[key]
         if isinstance(value, bool):
             lines.append('  <property name="%s">%s</property>' % (key, str(value).lower()) )

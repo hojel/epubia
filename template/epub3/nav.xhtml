@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+	<title>$book['title']</title>
+	<meta charset="utf-8" />
+</head>
+<body>
+	<nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc" id="toc">
+		<h1>목차</h1>
+		<ol>
+#if $gen['coverimage']
+			<li><a href="coverpage.xhtml">표지</a></li>
+#end if
+			<li><a href="OPS/titlepage.xhtml">제목</a></li>
+#for $ch in $book['chapter']
+#if $ch['name']
+			<li><a href="OPS/$ch['filename']">$ch['name']</a></li>
+#if $gen['toclevel'] > 1
+				<ol>
+#for $sec in $ch['section']
+					<li><a href="OPS/$ch['filename']#$sec['id']">$sec['name']</a></li>
+#end for
+				</ol>
+#end if
+		</ol>
+#end if
+#end for
+	</nav>
+</body>
+</html>

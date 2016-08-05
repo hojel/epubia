@@ -1,0 +1,71 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" prefix="cc: http://creativecommons.org/ns# rendition: http://www.idpf.org/vocab/rendition/#" version="3.0" unique-identifier="bookid" xml:lang="ko" id="package">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+<!-- unique identifier -->
+    <dc:identifier id="bookid" opf:scheme="UUID">urn:uuid:$gen['uuid']</dc:identifier>
+    <meta refines="#bookid" property="identifier-type" scheme="onix:codelist5">01</meta>
+
+<!--
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/"
+        opf:scheme="ISBN">urn:isbn:$book['isbn']</dc:identifier>
+-->
+
+    <dc:language>$book['lang']</dc:language>
+    <dc:title>$book['title']</dc:title>
+    <dc:creator opf:role="creator1">$book['author']</dc:creator>
+    <meta refines="#creator1" property="role" scheme="marc:relators">aut</meta>
+    <dc:publisher>$book['publisher']</dc:publisher>
+    <dc:date>$book['publishdate']</dc:date>
+    <dc:description>$book['summary']</dc:description>
+    <dc:subject>$book['subject']</dc:subject>
+
+    <dc:contributor id="contributor">$gen['name'] ($gen['version'])</dc:contributor>
+    <meta refines="#contributor" property="role" scheme="marc:relators">bkp</meta>
+<!--
+    <meta refines="#contributor" property="file-as"></meta>
+-->
+    <meta property="dcterms:modified">$gen['timestamp']</meta>
+
+    <meta name="cover" content="cover"/>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" properties="nav" media-type="application/xhtml+xml"/>
+    <item id="css1" href="OPS/generic.css" media-type="text/css"/>
+    <item id="css2" href="OPS/target.css" media-type="text/css"/>
+#if $gen['coverimage']
+    <item id="cover" href="$gen['coverimage'][0]" media-type="image/$gen['coverimage'][1]"/>
+    <item id="coverpage" href="coverpage.xhtml" media-type="application/xhtml+xml"/>
+#end if
+    <item id="titlepage" href="OPS/titlepage.xhtml" media-type="application/xhtml+xml"/>
+#set $cnt = 0
+#for $ch in $book['chapter']
+#if $ch['id']
+    <item id="$ch['id']" href="OPS/$ch['filename']" media-type="application/xhtml+xml"/>
+#else
+#set $cnt += 1
+    <item id="__$cnt" href="OPS/$ch['filename']" media-type="application/xhtml+xml"/>
+#end if
+#end for
+#set $cnt = 0
+#for $p in $book['image']
+#set $cnt += 1
+    <item id="image$cnt" href="OPS/$p[0]" media-type="image/$p[1]"/>
+#end for
+  </manifest>
+  <spine toc="ncx">
+#if $gen['coverimage']
+    <itemref idref="coverpage" linear="no"/>
+#end if
+    <itemref idref="titlepage"/>
+#for $ch in $book['chapter']
+#if $ch['id']
+    <itemref idref="$ch['id']"/>
+#end if
+#end for
+  </spine>
+  <guide>
+#if $gen['coverimage']
+    <reference href="coverpage.xhtml" type="cover" title="Cover"/>
+#end if
+  </guide>
+</package>

@@ -47,7 +47,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
         title = md.Meta['title'][0].replace(', ','<br />')
     if 'author' in md.Meta:
         author = md.Meta['author'][0].replace(', ','<br />')
-    cover_tmpl = open(os.path.join('template','pdf_coverpage.html'), 'r').read().decode('utf-8')
+    cover_tmpl = open(os.path.join('template','pdf','coverpage.html'), 'r').read().decode('utf-8')
     coverpg_htm = str( Template(cover_tmpl, searchList=[ {'cover_url':cover_file,'title':title,'author':author} ]) )
     htmline.append( unicode(coverpg_htm,'utf-8') )
     #-- Body
@@ -62,7 +62,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     html = html.replace('<h1 />','<h1></h1>')
     htmline.append(html)
     #-- PDF generation
-    css_tmpl = open(os.path.join('template',cssfile), 'r').read().decode('utf-8')
+    css_tmpl = open(os.path.join('template','pdf',cssfile), 'r').read().decode('utf-8')
     target_css = str( Template(css_tmpl, searchList=[ {'font':'fonts/'+fontfile} ]) )
     fp = file(pdffile,'wb')
     pdf = pisa.pisaDocument(
@@ -77,7 +77,7 @@ def markdown2pdf(text, pdffile, cssfile='xhtml2pdf.css', src_dir='.',
     if cif and os.path.exists(cif.name):
         os.remove(cif.name)
     #if debug and not pdf.err:
-    #	pisa.startViewer(pdffile)
+    #   pisa.startViewer(pdffile)
 
 # suppress ho.pisa loggin message
 import logging

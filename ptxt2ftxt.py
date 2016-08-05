@@ -5,8 +5,11 @@
 
 import re
 
-QOpenChr  = u'''"'“‘『「<'''
-QCloseChr = u'''"'”’』」>'''
+# NOTE:
+#    '>' makes headache when it is used as QCloseChr,
+#    because it is already used as 'indent' mark in Markdown
+QOpenChr  = u'''"'“‘『「'''
+QCloseChr = u'''"'”’』」'''
 SStartChr = u'-=#ㅡ'
 SEndChr   = u'\.!\?,，='
 
@@ -32,7 +35,7 @@ def ftxtclean(txt, pretty_quote=True, correct_word_break=None):
     if pretty_quote:
         txt2 = change_quotechar(txt2)
     if correct_word_break is not None:
-    	if correct_word_break == "naver_autospacing":
+        if correct_word_break == "naver_autospacing":
             print "INFO: correct word break with Naver Autospacing"
             txt2 = correct_word_by_naver(txt2)
         else:
@@ -51,6 +54,8 @@ def preprocess(txt, startline=1):
     # clean empty line
     # *NOTE* possibile error with preformatted text
     txt = re.compile(r'^ [ \t]*$',re.M|re.U).sub('', txt)
+    # max empty lines = 3
+    txt = re.compile(r'\n{4,}').sub('\n\n\n\n', txt)
     return txt
 
 def analyze_paragraph(txt):
@@ -93,13 +98,15 @@ def format_paragraph(txt, pfmt_type=1):
     return txt
 
 def postprocess(txt, pretty_quote):
+    # remove unnecessary indent
+    txt2 = re.compile("^ {1,3}", re.M).sub("", txt)
     # insert line before quote start
-    txt2 = re.compile(ur"([%s%s])\s*\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(ur"\1\n\n\2", txt)
+    txt2 = re.compile(ur"([%s%s][ \t]*)\n([%s])" %(SEndChr, QCloseChr, QOpenChr)).sub(ur"\1\n\n\2", txt2)
     # insert line after quote ends
-    txt2 = re.compile(ur"([%s])\s*\n(\S)" %QCloseChr).sub(ur"\1\n\n\2", txt2)
+    txt2 = re.compile(ur"([%s][ \t]*)\n(\S)" %QCloseChr).sub(ur"\1\n\n\2", txt2)
     #txt2 = re.compile(ur"\n([^%s].*, *[%s].*[%s])\n\n" %(QOpenChr, QOpenChr, QCloseChr)).sub(ur"\1\n", txt2)
     # line starting with special character
-    txt2 = re.compile(ur"(\S)\s*\n([%s])" %SStartChr).sub(ur"\1\n\n\2", txt2)
+    txt2 = re.compile(ur"(\S[ \t]*)\n([%s])" %SStartChr).sub(ur"\1\n\n\2", txt2)
     return txt2
 
 #----------------------------------------------------------
@@ -120,14 +127,11 @@ def correct_word_by_naver(txt):
     # separate a line to two lines
     ll1 = []
     for l in txt.split('\n'):
-    	ll1.append(l)
-    	ll1.append('')      # line doubling
+        ll1.append(l)
+        ll1.append('')      # line doubling
     txt1 = '\n'.join(ll1)
-    txt2 = re.compile(r'(\S*[^ \n%s%s]) ?\n\n([^ \n%s%s]\S*) *\n{0,2}' %(SEndChr,QCloseChr,SStartChr,QOpenChr)).sub(r'\n\1 \2\n', txt1)
+    txt2 = re.compile(r'(\S*[^ \n%s%s]) ?\n\n([^ \n%s%s]\S*) *(?:\n\n|)' %(SEndChr,QCloseChr,SStartChr,QOpenChr)).sub(r'\n\1 \2\n', txt1)
     ll2 = txt2.split('\n')
-    if len(ll2) % 2:
-    	txt2 += '\n'
-    	ll2.append('')
     # access external site
     from naver_autospacing import naver_autospacing
     try:

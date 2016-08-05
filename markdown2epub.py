@@ -11,27 +11,37 @@ import re
 LangAbbr = { 'English':'en', 'Korean':'ko' }
 seccnt = 0
 
-xcmap = {}      # TOC reverse map
-xcfilename = ''
+# markdown2html generates TOC with assuming one file
+# but all chapters are saved as individual files.
+# so, anchors should be fixed to refer ID inside related files.
+xcmap = {}          # TOC map: chapter ID to filename
+xcfilename = ''     # inform processed file name
+
 def fix_toc_anchor(match):
     global xcfilename
     if match.group(1) and match.group(1) is not '':
         global xcmap
-        chid = 'ch'+match.group(1)
+        aid = match.group(1)
+        chid = 'ch'+aid
         if chid in xcmap:
             xcfilename = xcmap[chid]
             return '"{0:s}"'.format(xcfilename)
         else:
-            # section (using previous set xcfilename)
-            return '"{0:s}#sec{1:s}"'.format(xcfilename, match.group(1))
+            # section (using previously set xcfilename)
+            return '"{0:s}#sec{1:s}"'.format(xcfilename, aid)
     xcfilename = ''
     return '""'
 
-xfmap = {}      # footnote reverse map
+# markdown2html generates foonotes at the end of the file.
+# In EPUB2, footnotes are stored in a individual chapter.
+xfmap = {}      # footnote reverse map: return from the footnote chapter to original chapter
+
 def fix_fnref_anchor(match):
     global xfmap
     return '"{0:s}#{1:s}"'.format(xfmap[match.group(1)], match.group(1))
 
+# markdown2html assigns duplicated names as ID for sections(h2 or h3)
+# it needs to insert identifier as sec_1, ssec_1
 ptn_h2tag = re.compile('<h2 id="(.*?)">')
 ptn_h2tag0 = re.compile('<h2>')
 ptn_h3tag = re.compile('<h3 id="(.*?)">')
@@ -42,6 +52,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
         template_dir='./template', src_dir='.',
         fontfile='arial.ttf', tocLevel=2, skipTo1st=False,
         splitLargeText=True, graphicSeparator=True,
+        footnote_as_chapter=True,
         maxImageSize=None):
     ext_list=['def_list', 'footnotes', 'tables', 'meta']
     if '[TOC]' in text:
@@ -65,34 +76,40 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
     html = html.replace(u"’","&#8217;")
     if graphicSeparator:
         html = html.replace('<p>* * *</p>', '<p class="blankpara"><img src="@@@SEPARATOR_IMG@@@" /></p>')
-    # book info
+
+    # extract Meta info
     book = {'title':'', 'author':'', 'lang':'ko', 'chapter':[],
             'publisher':'', 'publishdate':'', 'summary':'', 'subject':'', 'isbn':'', 'cover_url':''}
     for key,val in md.Meta.items():
         if key == 'language':
             key,val = ('lang', [ LangAbbr[ val[0] ] ])
         book[ key ] = ', '.join(val)
-    # Chapter by Chapter
+
+    # preprocess for chapter split
     html = html.replace('<h1 />','<h1></h1>')
     html = html.replace('<h1>','<h1 id="">')
-    html = html.replace('<div class="footnote">',u'<h1 id="footnote">주석</h1><div class="footnote">')
-    html = html.replace('fn:','fn_').replace('fnref:','fnref_')
-    html = html.replace('#fn_','footnote.xhtml#fn_')
+    if footnote_as_chapter:
+        html = html.replace('fn:','fn_').replace('fnref:','fnref_')
+        html = html.replace('#fn_','footnote.xhtml#fn_')
+        html = html.replace('<div class="footnote">',u'<h1 id="footnote">주석</h1><div class="footnote">')
 
+    # chapter split
     ch_list = html.split('<h1')
     if ch_list[0].strip() == '':
         ch_list.pop(0)
+
+    # parse chapter and store in book['chapter'] list
     chcnt = 0
     global xcmap, xfmap
-    xcmap = {}
-    xfmap = {}
+    xcmap = {}      # collect chapter info for TOC chapter
+    xfmap = {}      # collect foontoe info for footnote chapter
     for ch in ch_list:
         chcnt += 1
-        seccnt = 0
+        seccnt = 0      # section counter in global
         sections = []
         pos = ch.find('</h1>')
         if pos < 0:
-            title = None
+            title = ''
             chtm = ch
             chid = ''
         else:
@@ -119,18 +136,21 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
                                  'html':chtm,
                                  'section':sections,
                                  'filename':filename} )
-        print u"{0:d}({1:s}) {2:s}".format(chcnt,chid,title)
+        #print u"{0:d}({1:s}) {2:s}".format(chcnt,chid,title)
+        print "{0:d}({1:s}) {2:s}".format(chcnt,chid,title.encode('cp949',errors='ignore'))
         # register in xref map
         xcmap[chid] = filename
         for xfref in ptn_fnref.findall(chtm):
             print "register anchor {0:s}#{1:s}".format(filename, xfref)
             xfmap[xfref] = filename
+
     # Remove 1st chapter if it has no title
     if skipTo1st:
         remove_1st_chapter(book)
     # Split chapter if it exceeds 290 KB
     if splitLargeText:
         split_large_chapter(book)
+
     # Fix anchor
     for ch in book['chapter']:
         # in TOC chapter
@@ -139,6 +159,7 @@ def markdown2epub(text, epubfile, target_css='target/None.css',
         # in Footnote chapter
         if ch['id'] == 'chfootnote':
             ch['html'] = re.compile('"#(fnref_.*?)"').sub(fix_fnref_anchor, ch['html'])
+
     # generate ePub
     epubgen.epubgen(book, epubfile, target_css=target_css, template_dir=template_dir, src_dir=src_dir,
                     fontfile=fontfile, toclevel=tocLevel,
@@ -169,7 +190,6 @@ def remove_1st_chapter(book):
 
 def split_large_chapter(book):
     chcnt = 0
-    ptn_fnref = re.compile('id="(fnref_.*?)"')
     newpos = 0
     for ch in book['chapter']:
         chcnt += 1
@@ -182,12 +202,12 @@ def split_large_chapter(book):
             pos_s = 0
             pos_e = 100*1024
             while True:
-            	pos_e = html.find('<p>', pos_e)
-            	htmls.append( html[pos_s : pos_e] )
-            	if pos_e < 0:
-            		break
-            	pos_s = pos_e
-            	pos_e = pos_s + 100*1024
+                pos_e = html.find('<p>', pos_e)
+                htmls.append( html[pos_s : pos_e] )
+                if pos_e < 0:
+                    break
+                pos_s = pos_e
+                pos_e = pos_s + 100*1024
             print "Split to %d files" %len(htmls)
             ch['html'] = htmls[0]
             if not ch['id']:

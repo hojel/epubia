@@ -19,17 +19,22 @@ PTN_CHAP4 = re.compile(r'^\s*(chapter\s+\d+\.?|prologue|epilogue)\s*$',re.M|re.I
 def ftxt2markdown(txt, guessChapter=True, guessParaSep=False):
     # (1) guess chapter
     if guessChapter:
-    	print "Guess Chapter"
-    	txt = guess_header(txt)
+        print "Guess Chapter"
+        txt = guess_header(txt)
         #txt = find_header_from_toc(txt)
     # (2) consider sequence of empty lines as empty paragraph
     if guessParaSep:
-    	print "Guess Paragraph Separation"
+        print "Guess Paragraph Separation"
         txt = re.compile('\n{6,}([^#\*\t\n!])').sub(r'\n\n*\n\n\g<1>', txt)
+    # (3) convert long multiple lines to blank paragraph
+    if True:
+        txt = re.compile('\n{4,}').sub(r'\n\n*\n\n', txt)
+        txt = re.compile(u'\n(> *\n){3,}').sub(ur'\n>\n>*\n>\n', txt)
+    # (4) merge multiple empty lines to one
     txt2 = re.compile('\n{3,}').sub(r'\n\n', txt)
-    # (3) filter unwanted markdown syntax
-    txt2 = re.compile('^( {0,3})-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt2)
-    return txt2
+    # (5) filter unwanted markdown syntax
+    txt3 = re.compile('^( {0,3})-([^-])',re.M|re.U).sub(r'\g<1>\\-\g<2>', txt2)
+    return txt3
 
 #--------------------------------------
 PTN_MD_CH1 = re.compile(r'^#($|[^#])',re.M)
@@ -54,7 +59,7 @@ def find_header_from_toc(text, toc_hdr=u"차례"):
     inTOC = False
     cnt = 0
     for line in text.split('\n'):
-    	if start:
+        if start:
             cname = re.compile('\d*\s*$').sub('',line).strip()
             if cname:
                 inTOC = True
@@ -63,7 +68,7 @@ def find_header_from_toc(text, toc_hdr=u"차례"):
                 cnt += 1
             elif inTOC:
                 break
-    	elif line.find(toc_hdr) >= 0:
+        elif line.find(toc_hdr) >= 0:
             start = True
             inTOC = False
     print "%d chapters found" % cnt

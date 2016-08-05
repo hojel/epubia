@@ -23,7 +23,7 @@ class MyFrame(wx.Frame):
         self.config = config
         self.dirname = os.curdir
         self.scrap = []     # scrap result
-        self.tmpldir = "template"
+        self.tmpldir = os.path.join("template", "epub2")
         self.targetcss = "target/%s.css" % self.config['TargetCSS']
 
         # init
@@ -105,7 +105,7 @@ class MyFrame(wx.Frame):
     def runImport(self, evt):
         # multi-file open dialogue
         """ Open a file"""
-        dlg = wx.FileDialog(self, "Choose files", self.dirname, "", "*.txt", wx.FD_OPEN|wx.FD_MULTIPLE)
+        dlg = wx.FileDialog(self, "Choose files", self.dirname, "", "*.txt;*.md", wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             self.dirname = dlg.GetDirectory()
             for fname in dlg.GetFilenames():

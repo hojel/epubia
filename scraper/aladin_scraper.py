@@ -53,7 +53,11 @@ class book_scraper:
         root = fromstring(raw)
         info = dict()
 
-        tit_node = root.xpath('//td[@class="pwrap_bgtit"]')[0]
+        match = root.xpath('//td[@class="pwrap_bgtit"]')
+        if len(match) == 0:
+            print "No match with the given ISBN, "+isbn
+            return info
+        tit_node = match[0]
         # Title
         node = tit_node.xpath('.//a[@class="p_topt01"][1]')[0]
         info['title'] = node.text.strip()
@@ -72,7 +76,7 @@ class book_scraper:
             info['cover_url'] = urls[0].replace('_fs.', '_f.')
         # ISBN-13
         url = root.xpath('//meta[@property="og:url"]/@content')[0]
-        info['isbn'] = url.rsplit('/',1)[1]
+        info['isbn'] = url.rsplit('=',1)[1]
         # Short Description
         info['description'] = root.xpath('//meta[@name="Description"]/@content')[0]
 
